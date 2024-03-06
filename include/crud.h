@@ -70,7 +70,9 @@ static std::string selectQuery(T& e) {
 template<typename T>
 class CRUD {
 private:
-	inline static std::map<int, std::pair < std::string, std::string> operations;
+	inline static std::map<int, std::pair<std::string,std::string>> operations = {
+		{1, std::make_pair{"=", ""}};
+	}
 	inline static std::string isOpt = " (Note - This field is optional. Enter '#' to keep it blank!)";
 public:
 	static bool insertC(T& e) {
@@ -110,7 +112,7 @@ public:
 		return 0;
 	}*/
 
-	static bool advancedC(T& e) {
+	/*static bool advancedC(T& e) {
 		std::cout << "Choose the column to apply condition, enter the number" << "\n";
 		int selection = 0;
 		for (auto& [id, strct] : e.gettersetter) {
@@ -121,7 +123,7 @@ public:
 				selection = id;
 			}
 		}
-	}
+	}*/
 
 	static bool viewC(T& e) {
 		std::cout << "Enter '1' to View Entire Table" << "\n";
