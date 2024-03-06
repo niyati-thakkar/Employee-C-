@@ -42,6 +42,7 @@ public:
 	}
 	void selectQueryD(std::string query) {
 		/* Create SQL statement */
+		/* Create SQL statement */
 		const char* sql = query.c_str();
 
 		/* Execute SQL statement */
