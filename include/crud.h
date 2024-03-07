@@ -30,26 +30,19 @@ static std::string insertQuery(T e) {
 		}
 	}
 	
-	std::string query = "INSERT INTO " + Employee::TABLE_NAME + " (" + fields.substr(0, fields.length() - 2) + ") VALUES(" + input.substr(0, input.length() - 2) +"); ";
+	std::string query = "INSERT INTO " + T::TABLE_NAME + " (" + fields.substr(0, fields.length() - 2) + ") VALUES(" + input.substr(0, input.length() - 2) +"); ";
 	std::cout << query << "\n";
 	return query;
 }
-//template<typename T>
-//static std::string deleteQuery(T e) {
-//
-//	std::string fields = "";
-//	std::string input = "";
-//	for (auto& [id, strct] : e.gettersetter) {
-//		if (auto h = (e.*strct.getter)(); h.has_value()) {
-//			fields += strct.name + ", ";
-//			input += std::string{ "'" } + h.value_or("") + std::string{ "', " };
-//		}
-//	}
-//
-//	std::string query = "INSERT INTO " + e.TABLE_NAME + " (" + fields.substr(0, fields.length() - 2) + ") VALUES(" + input.substr(0, input.length() - 2) + "); ";
-//
-//	return query;
-//}
+template<typename T>
+static std::string deleteQuery(T e) {
+	return std::string{ "DELETE FROM " } + T::TABLE_NAME + " WHERE ID = " + e.getid().value_or("") + ";";
+}
+
+template<typename T>
+static std::string deleteQuery(T e, std::string query) {
+	return std::string{ "DELETE FROM " } + T::TABLE_NAME + " " + query;
+}
 
 static std::string whereQuery(std::string input1, std::string op1, std::string field1, std::string reln, std::string input2, std::string op2, std::string field2) {
 	return std::string{ "WHERE " } + field1 + " " + op1 + " '" + input1 + "' " + reln + " " + field2 + " " + op2 + " '" + input2 + "';";
@@ -65,7 +58,7 @@ static std::string selectQuery(T& e, std::vector<std::string> cols) {
 		fields += col + ", ";
 	}
 
-	std::string query = "SELECT " + fields.substr(0,fields.length()-2) + " from " + Employee::TABLE_NAME + ";";
+	std::string query = "SELECT " + fields.substr(0,fields.length()-2) + " from " + T::TABLE_NAME + ";";
 
 	return query;
 }
@@ -107,23 +100,43 @@ public:
 		std::cout << db.executeQueryD(insertQuery(e)) << "\n";
 		return 0;
 	}
-	/*static bool deleteC(T& e) {
+	static bool deleteC(T& e) {
+		std::cout << "Enter '1' to delete a row based on ID";
+		std::cout << "Enter '2' for Advanced Delete";
+		char opt;
+		std::string query;
+		std::cin >> opt;
 		while (true) {
-			std::string id;
-			std::cout << "Enter ID for " << e.TABLE_NAME << "\n";
-			std::cin >> id;
-			if (e.setid(id)) {
+			if (opt == '1') {
+				std::cout << "Enter ID" << "\n";
+				while (true) {
+					try {
+						std::string temp;
+						std::cin >> temp;
+						e.setid(temp);
+						break;
+					}
+					catch (...) {
+						std::cout << "Invalid ID please Try again!" << "\n";
+					}
+				}
+				query = deleteQuery(e);
+				break;
+			}
+			else if (opt == '2') {
+				query = advancedC(e);
+				query = deleteQuery(e, query);
 				break;
 			}
 			else {
-				std::cout << "Invalid ID (try again)";
+				std::cout << "Invalid Option selected, please try again!" << "\n";
 			}
 		}
 		
 		Database db;
-		std::cout << db.executeQueryD(insertQuery(e)) << "\n";
+		std::cout << db.executeQueryD(deleteQuery(e)) << "\n";
 		return 0;
-	}*/
+	}
 
 	static std::string advancedC(T& e) {
 		std::cout << "Select the column to apply condition, Enter the number" << "\n";
@@ -223,20 +236,35 @@ public:
 		std::string input;
 		std::cin >> input;
 		std::vector<std::string> cols;
-		if (input == "2") {
-			for (auto& [id, strct] : e.gettersetter) {
-				std::cout << "Enter '1' to select " << strct.name << ", '0' to discard it." << "\n";
-				std::string temp;
-				std::cin >> temp;
-				if (temp == "1"){
-					cols.push_back(strct.name);
-				}
+		std::string query;
+		while (true) {
+			if (input == "1") {
+				query = selectQuery(e);
+				break;
 			}
+			if (input == "2") {
+				for (auto& [id, strct] : e.gettersetter) {
+					std::cout << "Enter '1' to select " << strct.name << ", '0' to discard it." << "\n";
+					std::string temp;
+					std::cin >> temp;
+					if (temp == "1") {
+						cols.push_back(strct.name);
+					}
+				}
+				if (cols.size() == 0) {
+					std::cout << "No Columns Selected!";
+					continue;
+				}
+				query = selectQuery(e, cols);
+				break;
+			}
+			std::cout << "invalid option selected please try again!" << "\n";
 		}
+		
+		
 		std::cout << "Do you want to add advanced conditions? enter 'y' for yes and 'n' for no" << "\n";
 		char additionalCondition;
 		std::cin >> additionalCondition;
-		std::string query = selectQuery(e);
 		if (additionalCondition == 'y') {
 			query = query.substr(0, query.length()-1) + " " + advancedC(e);
 			//std::cout << query <<"\n";
@@ -244,16 +272,7 @@ public:
 
 		
 		Database db;
-		if (input == "1") {
-			db.selectQueryD(query);
-		}
-		else {
-			if (cols.size() == 0) {
-				std::cout << "No Columns Selected!";
-				return false;
-			}
-			db.selectQueryD(selectQuery(e, cols));
-		}
+		db.selectQueryD(query);
 		//std::cout << db.executeQuery(insertQuery(e, "emp")) << "\n";
 		
 		return true;

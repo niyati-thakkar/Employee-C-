@@ -48,4 +48,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="osmanip-4.6.1\.all-contributorsrc" />
+    <None Include="osmanip-4.6.1\.clang-format" />
+    <None Include="osmanip-4.6.1\.gitignore" />
+    <None Include="osmanip-4.6.1\CITATION.cff" />
+    <None Include="osmanip-4.6.1\CONTRIBUTING.md" />
+    <None Include="osmanip-4.6.1\docker-compose.yml" />
+    <None Include="osmanip-4.6.1\Doxyfile" />
+    <None Include="osmanip-4.6.1\LICENSE" />
+    <None Include="osmanip-4.6.1\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="osmanip-4.6.1\CMakeLists.txt" />
+  </ItemGroup>
 </Project>
