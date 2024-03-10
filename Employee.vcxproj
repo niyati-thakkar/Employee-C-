@@ -128,6 +128,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="include\Menu.h" />
+    <ClCompile Include="include\Utility.h" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="sqlite\shell.c" />
     <ClCompile Include="sqlite\sqlite3.c" />
@@ -137,7 +139,11 @@
   <ItemGroup>
     <ClInclude Include="include\crud.h" />
     <ClInclude Include="include\database.h" />
+    <ClInclude Include="include\Department.h" />
     <ClInclude Include="include\Employee.h" />
+    <ClInclude Include="include\HRFinance.h" />
+    <ClInclude Include="include\Management.h" />
+    <ClInclude Include="include\Tech.h" />
     <ClInclude Include="sqlite\sqlite3.h" />
     <ClInclude Include="sqlite\sqlite3ext.h" />
   </ItemGroup>
