@@ -40,7 +40,7 @@ public:
 			return "Query Executed successfully\n";
 		}
 	}
-	void selectQueryD(std::string query) {
+	std::string selectQueryD(std::string query) {
 		/* Create SQL statement */
 		/* Create SQL statement */
 		const char* sql = query.c_str();
@@ -53,7 +53,7 @@ public:
 			sqlite3_free(zErrMsg);
 		}
 		else {
-			fprintf(stdout, "Operation done successfully\n");
+			return "Operation done successfully\n";
 		}
 		
 	}

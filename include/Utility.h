@@ -1,3 +1,5 @@
+#ifndef _UTILITY_H
+#define _UTILITY_H
 #define PIN int
 #define EID int
 #define DID int
@@ -7,6 +9,7 @@
 #define HRID int
 #include<string>
 #include<regex>
+#include<iostream>
 template<typename T>
 struct getsetmap {
 	std::string name;
@@ -33,6 +36,43 @@ public:
 		return std::regex_match(str, std::regex("\\(?\\d{3}[-\\) ]+\\d{3}[- ]?\\d{4}"));
 	}
 	static bool validateEmail(std::string str) {
-		return std::regex_match(str, std::regex("^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"));
+		return std::regex_match(str, std::regex(R"([_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4}))"));
 	}
 };
+
+class Utility {
+public:
+
+	static inline std::string backMessage = "0. Go back to previous menu!";
+	static inline std::string exitMessage = "100. To exit!";
+
+	static bool tryAgain() {
+		std::cout << "The entered value is not valid. Do you wish to try again?\n1. YES\n2. NO, Go Back to previous Menu!";
+		int opt;
+		std::cin >> opt;
+		return opt == 1 ? true : false;
+	}
+	template<typename ...Args>
+	[[nodiscard]] static int takeOption(Args ...args) {
+		std::cout << Utility::backMessage << "\n";
+		int i = 1;
+		((std::cout << i++ << ". " << std::forward<Args>(args) << " \n"), ...);
+		std::cout << Utility::exitMessage << "\n";
+		int option;
+		std::cin >> option;
+		if (option == 100) {
+			exit(0);
+		}
+		if (option < 0 || option >= i) {
+			std::cout << "Please enter a valid option" << "\n";
+			std::cin >> option;
+		}
+		if (option < 0 || option >= i) {
+			std::cout << "Invalid Option Selected!" << "\n";
+			return 0;
+		}
+		return option;
+
+	}
+};
+#endif

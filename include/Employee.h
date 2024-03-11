@@ -184,7 +184,7 @@ public:
 			email = "";
 			return true;
 		}
-		if(Validation::validateContact(str)) {
+		if(Validation::validateEmail(str)) {
 			contact = str;
 			return true;
 		}
