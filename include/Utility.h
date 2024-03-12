@@ -21,7 +21,8 @@ struct getsetmap {
 class Validation {
 public:
 	static bool validateID(std::string id) {
-		return id.length() == 6;
+		//return id.length() == 6;
+		return true;
 	}
 	static bool validateString(std::string str) {
 		if (str.length() == 0) {
@@ -51,6 +52,22 @@ public:
 		int opt;
 		std::cin >> opt;
 		return opt == 1 ? true : false;
+	}
+	template<typename T>
+	[[nodiscard]] static bool getUserInput(T& e, int id) {
+		auto map = e.getMap()[id];
+		std::cout << "Enter " << map.name << "\n";
+		std::string temp;
+		std::cin >> temp;
+		if (!(e.*map.setter)(temp)) {
+			std::cout << "Invalid " << map.name << " (Try Again)" << "\n";
+			std::cin >> temp;
+			if (!(e.*map.setter)(temp)) {
+				return false;
+			}
+
+		}
+		return true;
 	}
 	template<typename ...Args>
 	[[nodiscard]] static int takeOption(Args ...args) {

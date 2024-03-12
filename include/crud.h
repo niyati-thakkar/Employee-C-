@@ -1,9 +1,11 @@
 #ifndef _CRUD_H_
 #define _CRUD_H_
+
 #include "Employee.h"
 #include <string>
 #include<optional>
 #include<map>
+#include<vector>
 #include "database.h"
 #include "../sqlite/sqlite3.h"
 #include<vector>
@@ -29,13 +31,15 @@ public:
 	}
 	
 
-	static std::string deleteQuery(T& e, getsetmap<T> strct) {
+	static std::string deleteQuery(T& e, int selection) {
+		auto& strct = e.getMap()[selection];
 		std::string query = std::string{ "DELETE FROM " } + e.getTableName() + " WHERE " + strct.name + " = '" + (e.*strct.getter)() + "'; ";
 		std::cout << query << "\n";
 		return query;
 	}
 
-	static std::string selectQuery(T& e, getsetmap<T> strct) {
+	static std::string selectQuery(T& e, int selection) {
+		auto& strct = e.getMap()[selection];
 		std::string query = std::string{ "SELECT * FROM " } + e.getTableName() + " WHERE " + strct.name + " = '" + (e.*strct.getter)() + "'; ";
 		std::cout << query << "\n";
 		return query;
@@ -55,6 +59,16 @@ public:
 
 	static std::string selectQuery(T& e) {
 		std::string query = "SELECT * FROM " + e.getTableName() + ";";
+		return query;
+	}
+
+	static std::string updateQuery(T& e, int where, std::vector<int>& what) {
+		auto& map = e.getMap();
+		std::string query = "UPDATE " + e.getTableName() + " SET ";
+		for (auto& id : what) {
+			query = query + map[id].name + " = '" + (e.*map[id].getter)() + "', ";
+		}
+		query = query.substr(0, query.length() - 2) + " WHERE " + map[where].name + " = '" + (e.*map[where].getter)() + "';";
 		return query;
 	}
 
@@ -78,35 +92,19 @@ private:
 public:
 	static void clear(T& e) {
 		e = T{};
-		std::cout << ("hii") << "\n";
 	}
 	
 	static bool insertC(T& e) {
 		auto& map = e.getMap();
 		for (int i = 2;i < map.size() + 1; i++) {
-			auto& strct = map[i];
-			std::cout << "Enter " << strct.name << (strct.isOptional ? isOpt : "") << "\n";
-			std::string temp;
-			std::cin >> temp;
-			if (!(e.*strct.setter)(temp)){
-				std::cout << "Invalid " << strct.name << " (Try Again)" << "\n";
-				std::cin >> temp;
-				if (!(e.*strct.setter)(temp)) {
-					if (!strct.isOptional) {
-						if (Utility::tryAgain()) {
-							insertC(e);
-						}
-						else {
-							clear(e);
-							return false;
-						}
-					}
-					else {
-						std::cout << "Optional field is left blank" << "\n";						
-					}
+			if (!Utility::getUserInput(e, i)) {
+				if (map[i].isOptional) {
+					std::cout << "Optional field is left blank" << "\n";
 				}
-				
-				
+				else {
+					clear(e);
+					return false;
+				}
 			}
 			
 		}
@@ -124,10 +122,10 @@ public:
 		for (auto& [id, strct] : map) {
 			std::cout << i++ << ". " << strct.name << "\n";
 		}
-		int opt;
-		std::cin >> opt;
-		if (opt == 0) return true;
-		if (opt < 0 || opt > map.size()) {
+		int selection;
+		std::cin >> selection;
+		if (selection == 0) return true;
+		if (selection < 0 || selection > map.size()) {
 			if (Utility::tryAgain()) {
 				deleteC(e);
 			}
@@ -136,23 +134,15 @@ public:
 			}
 		}
 
-		std::cout << "Enter " << map[opt].name << "\n";
-		std::string temp;
-		std::cin >> temp;
-		if (!(e.*map[opt].setter)(temp)) {
-			std::cout << "Invalid " << map[opt].name << " (Try Again)" << "\n";
-			std::cin >> temp;
-			if (!(e.*map[opt].setter)(temp)) {
-				std::cout << "Entered invalid value, Sorry can't delete from Database!" << "\n";
-			}
-
-
+		if(!Utility::getUserInput(e, selection)){
+			std::cout << "Entered invalid value, Sorry can't delete from Database!" << "\n";
+			return false;
 		}
 
 
 		Database db;
-		std::cout << db.executeQueryD(Query<T>::deleteQuery(e, map[opt])) << "\n";
-		return 0;
+		std::cout << db.executeQueryD(Query<T>::deleteQuery(e, selection)) << "\n";
+		return true;
 	}
 
 	
@@ -187,37 +177,108 @@ public:
 			for (auto& [id, strct] : map) {
 				std::cout << i++ << ". " << strct.name << "\n";
 			}
-			int opt;
-			std::cin >> opt;
-			if (opt == 0) return true;
-			if (opt < 0 || opt > map.size()) {
+			int selection;
+			std::cin >> selection;
+			if (selection == 0) return true;
+			if (selection < 0 || selection > map.size()) {
 				if (Utility::tryAgain()) {
-					deleteC(e);
+					viewC(e);
 				}
 				else {
 					return false;
 				}
 			}
 
-			std::cout << "Enter " << map[opt].name << "\n";
-			std::string temp;
-			std::cin >> temp;
-			if (!(e.*map[opt].setter)(temp)) {
-				std::cout << "Invalid " << map[opt].name << " (Try Again)" << "\n";
-				std::cin >> temp;
-				if (!(e.*map[opt].setter)(temp)) {
-					std::cout << "Entered invalid value, Sorry can't view from Database!" << "\n";
-				}
-
+			if(!Utility::getUserInput(e, selection)){
+				std::cout << "Entered invalid value, Sorry can't view from Database!" << "\n";
+				return false;
 			}
-			query = Query<T>::selectQuery(e, map[opt]);
+			query = Query<T>::selectQuery(e, selection);
 		}
 		Database db;
 		std::cout << db.selectQueryD(query) << "\n";
-		return 0;
-		
 	}
+	static bool updateC(T& e) {
+		int opt1 = Utility::takeOption("Update by ID", "Update by Column value");
+		if (opt1 == 0) return true;
+		auto& map = e.getMap();
+		std::string query;
+		int where = 0;
+		if (opt1 == 1) {
+			where = 1;
+		}
+		if (opt1 == 2) {
+			std::cout << "Update on the basis of:" << "\n";
+			int i = 1;
+			for (auto& [id, strct] : map) {
+				std::cout << i++ << ". " << strct.name << "\n";
+			}
+			std::cin >> where;
+			if (where == 0) return true;
+			if (where < 0 || where > map.size()) {
+				if (Utility::tryAgain()) {
+					updateC(e);
+				}
+				else {
+					return false;
+				}
+			}
+		}
+		if (!Utility::getUserInput(e, where)) {
+			std::cout << "Entered invalid value, Sorry can't update from Database!" << "\n";
+			return false;
+		}
 
+		int opt2 = Utility::takeOption("Update Single Value", "Update multiple Values");
+		std::vector<int> updated;
+
+		if (opt2 == 0) return updateC(e);
+		if (opt2 == 1) {
+			std::cout << "Select the value to be updated:" << "\n";
+			int i = 1;
+			for (int i = 2;i < map.size() + 1; i++) {
+				auto& strct = map[i];
+				std::cout << i-1 << ". " << strct.name << "\n";
+			}
+			int what;
+			std::cin >> what;
+			if (what <= 0 || what > map.size()-1) {
+				if (Utility::tryAgain()) {
+					updateC(e);
+				}
+				else {
+					return false;
+				}
+			}
+			if (!Utility::getUserInput(e, what+1)) {
+				std::cout << "Entered invalid value, Sorry can't update from Database!";
+					return false;
+			}
+			else {
+				updated.push_back(what+1);
+			}
+		}
+		if (opt2 == 2) {
+			for (int i = 2;i < map.size() + 1; i++) {
+				std::cout << "1. Update" << map[i].name << "\n";
+				std::cout << "2. Discard" << map[i].name << "\n";
+				std::string temp;
+				std::cin >> temp;
+				if (temp == "1") {
+					if (!Utility::getUserInput(e, i)) {
+						std::cout << "Entered invalid value, Sorry can't update from Database!";
+							return false;
+					}
+					updated.push_back(i);
+				}
+				
+			}
+		}
+		
+		Database db;
+		std::cout << db.executeQueryD(Query<T>::updateQuery(e, where, updated)) << "\n";
+		return 0;
+	}
 	
 };
 #endif

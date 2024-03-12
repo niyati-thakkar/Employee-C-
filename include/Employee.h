@@ -134,8 +134,14 @@ public:
 
 	bool setid(std::string i) {
 		if (Validation::validateID(i)) {
-			id = stoi(i);
-			return true;
+			try {
+				id = stoi(i);
+				return true;
+			}
+			catch (...) {
+				return false;
+			}
+			
 		}
 		return false;
 			

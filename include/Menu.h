@@ -51,6 +51,10 @@ public:
 			CRUD<Employee>::viewC(e);
 			break;
 		}
+		case 2: {
+			CRUD<Employee>::updateC(e);
+			break;
+		}
 		case 3: {
 			CRUD<Employee>::deleteC(e);
 			break;
