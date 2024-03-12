@@ -141,7 +141,7 @@
     <ClInclude Include="include\database.h" />
     <ClInclude Include="include\Department.h" />
     <ClInclude Include="include\Employee.h" />
-    <ClInclude Include="include\HRFinance.h" />
+    <ClInclude Include="include\HR.h" />
     <ClInclude Include="include\Management.h" />
     <ClInclude Include="include\Tech.h" />
     <ClInclude Include="sqlite\sqlite3.h" />

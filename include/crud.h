@@ -94,23 +94,29 @@ public:
 		e = T{};
 	}
 	
-	static bool insertC(T& e) {
+	static bool insertC(T& e, int start) {
 		auto& map = e.getMap();
-		for (int i = 2;i < map.size() + 1; i++) {
-			if (!Utility::getUserInput(e, i)) {
-				if (map[i].isOptional) {
-					std::cout << "Optional field is left blank" << "\n";
-				}
-				else {
+		for (int i = start;i < map.size() + 1; i++) {
+			if (!map[i].isOptional){
+				if (!Utility::getUserInput(e, i)) {
+					std::cout << "Entered invalid value, Sorry can't insert into Database!"<< "\n";
 					clear(e);
 					return false;
 				}
 			}
-			
+			else {
+				std::cout << "Enter " << map[i].name << isOpt <<"\n";
+				std::string temp;
+				std::cin >> temp;
+				if (temp[0] == '#' || !(e.*map[i].setter)(temp)) {
+					std::cout << "Optional Field is left blank!"<<"\n";
+				}
+			}
 		}
 		
 		Database db;
 		std::cout << db.executeQueryD(Query<T>::insertQuery(e)) << "\n";
+		(e.*map[1].setter)(std::to_string(db.lastInsertedValue()));
 		return true;
 	}
 	static bool deleteC(T& e) {
@@ -278,6 +284,15 @@ public:
 		Database db;
 		std::cout << db.executeQueryD(Query<T>::updateQuery(e, where, updated)) << "\n";
 		return 0;
+	}
+	static bool isKeyPresent(std::string table, std::string val) {
+		Database db;
+		return db.valueExistsInTable(table, val);
+	}
+	static bool deleteEmp(std::string id) {
+		Database db;
+		std::cout << db.executeQueryD(std::string{ "DELETE FROM EMPLOYEE WHERE ID = '" } + id + "';") << "\n";
+		return true;
 	}
 	
 };

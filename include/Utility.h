@@ -4,12 +4,13 @@
 #define EID int
 #define DID int
 #define MID int
-#define EnID int
+#define TID int
 #define AID int
-#define HRID int
+#define HID int
 #include<string>
 #include<regex>
 #include<iostream>
+
 template<typename T>
 struct getsetmap {
 	std::string name;
@@ -21,8 +22,7 @@ struct getsetmap {
 class Validation {
 public:
 	static bool validateID(std::string id) {
-		//return id.length() == 6;
-		return true;
+		return id.length() == 7;
 	}
 	static bool validateString(std::string str) {
 		if (str.length() == 0) {
@@ -39,6 +39,10 @@ public:
 	static bool validateEmail(std::string str) {
 		return std::regex_match(str, std::regex(R"([_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4}))"));
 	}
+	static bool validateDate(std::string str) {
+		return std::regex_match(str, std::regex(R"(^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$)"));
+	}
+
 };
 
 class Utility {

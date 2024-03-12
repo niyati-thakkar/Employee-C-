@@ -5,6 +5,7 @@
 #include<map>
 #include<optional>
 #include "utility.h"
+#include "crud.h"
 
 class Address {
 public:
@@ -24,7 +25,11 @@ public:
 	std::string getPincode() const {
 		return std::to_string(pincode);
 	}
-
+	std::string getEmpId() const {
+		if (empId != 0)
+			return std::to_string(empId);
+		return "";
+	}
 	bool setid(std::string str) {
 		if (Validation::validateID(str) && str[0] == '1' && str[1] == '1') {
 			try {
@@ -59,6 +64,24 @@ public:
 		}
 		return false;
 	}
+	bool setEmpId(std::string str) {
+		if (Validation::validateID(str)) {
+			try {
+				empId = stoi(str);
+				if (CRUD<Address>::isKeyPresent("Employee", str)) {
+					return true;
+				}
+				else {
+					std::cout << "Employee with given ID doesn't exists!" << "\n";
+				}
+
+			}
+			catch (...) {
+				return false;
+			}
+		}
+		return false;
+	}
 	bool setPincode(std::string pin) {
 		if (Validation::validatePincode(pin)) {
 			try {
@@ -75,18 +98,26 @@ public:
 		}
 		return false;
 	}
+	std::string getTableName() const {
+		return "Address";
+}
+	std::map<int, getsetmap<Address>>& getMap() const {
+		return gettersetter;
+	}
 private:
 	AID id;
+	EID empId;
 	std::string location;
 	std::string city;
 	std::string state;
 	PIN pincode;
 	inline static std::map<int, getsetmap<Address>> gettersetter = {
 		{1, getsetmap<Address>{"ID",& setid,&getid, false }},
-		{2, getsetmap<Address>{"Location",&setLocation,&getLocation, false}},
-		{3, getsetmap<Address>{"City",& setCity,& getCity, true}},
-		{4, getsetmap<Address>{"State",& setState,& getState, false}},
-		{5, getsetmap<Address>{"Pincode",& setPincode,& getPincode, false}},
+		{2, getsetmap<Address>{"EmpId",& setEmpId,& getEmpId, false }},
+		{3, getsetmap<Address>{"Location",&setLocation,&getLocation, false}},
+		{4, getsetmap<Address>{"City",& setCity,& getCity, false}},
+		{5, getsetmap<Address>{"State",& setState,& getState, false}},
+		{6, getsetmap<Address>{"Pincode",& setPincode,& getPincode, false}}
 	};
 };
 
@@ -95,7 +126,9 @@ class Employee {
 	
 public:
 	std::string getid() const{
-		return std::to_string(id);
+		if(Validation::validateID(std::to_string(id)))
+			return std::to_string(id);
+		return "";
 	}
 
 	std::string getFname() const {
@@ -121,15 +154,23 @@ public:
 	}
 
 	std::string getDeptId() const {
-		return std::to_string(deptId);
+		if (Validation::validateID(std::to_string(deptId)))
+			return std::to_string(deptId);
+		return "";
 	}
 
 	std::string getReportingManagerId() const {
-		return std::to_string(reportingManagerId);
+		if (Validation::validateID(std::to_string(reportingManagerId)))
+			return std::to_string(reportingManagerId);
+		return "";
 	}
 
-	std::string getTableName() {
+	std::string getTableName() const{
 		return TABLE_NAME;
+	}
+
+	std::string getDOB() const {
+		return DOB;
 	}
 
 	bool setid(std::string i) {
@@ -195,13 +236,26 @@ public:
 			return true;
 		}
 		return false;
+		return false;
 	}
 
+	bool setDOB(std::string str) {
+		if (Validation::validateDate(str)) {
+			DOB = str;
+			return true;
+		}
+		return false;
+	}
 	bool setDeptId(std::string str) {
 		if (Validation::validateID(str)) {
 			try {
 				deptId = stoi(str);
-				return true;
+				if (CRUD<Employee>::isKeyPresent("Department", str)) {
+					return true;
+				}
+				else {
+					std::cout << "Department with given ID doesn't exists!" << "\n";
+				}
 			}
 			catch (...) {
 				return false;
@@ -214,7 +268,13 @@ public:
 		if (Validation::validateID(str)) {
 			try {
 				reportingManagerId = stoi(str);
-				return true;
+				if (CRUD<Employee>::isKeyPresent("Employee", str)) {
+					return true;
+				}
+				else {
+					std::cout << "Employee with given ID doesn't exists!" << "\n";
+				}
+				
 			}
 			catch (...) {
 				return false;
@@ -228,15 +288,16 @@ public:
 	}
 	
 private:
-	EID id;
+	EID id{};
 	std::string fname;
 	std::string mname;
 	std::string lname;
 	std::string contact;
 	std::string email;
+	std::string DOB;
 	Address empAddr;
-	DID deptId;
-	EID reportingManagerId;
+	DID deptId{};
+	EID reportingManagerId{};
 	static inline std::string TABLE_NAME = "Employee";
 	inline static std::map<int, getsetmap<Employee>> gettersetter = {
 		{1, getsetmap<Employee>{"ID",& setid,& getid, false }},
@@ -245,8 +306,9 @@ private:
 		{4, getsetmap<Employee>{"LastName",& setLname,& getLname, false}},
 		{5, getsetmap<Employee>{"Contact",& setContact,& getContact, false}},
 		{6, getsetmap<Employee>{"Email",& setEmail,& getEmail, true}},
-		{7, getsetmap<Employee>{"DepartmentID",& setDeptId,& getDeptId, false}},
-		{8, getsetmap<Employee>{"ReportingManagerID",& setReportingManagerId,& getReportingManagerId, false}},
+		{7, getsetmap<Employee>{"DOB",&setDOB, &getDOB, false}},
+		{8, getsetmap<Employee>{"DepartmentID",& setDeptId,& getDeptId, false}},
+		{9, getsetmap<Employee>{"ReportingManagerID",& setReportingManagerId,& getReportingManagerId, true}},
 	};
 };
 

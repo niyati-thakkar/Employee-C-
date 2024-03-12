@@ -56,7 +56,7 @@
     <ClInclude Include="include\Department.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\HRFinance.h">
+    <ClInclude Include="include\HR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Management.h">
