@@ -27,10 +27,23 @@ public:
 			return std::to_string(empId);
 		return "";
 	}
-	std::string getTableName() const {
-		return "Management";
+	static bool isKeyPresent(std::string table, std::string val) {
+		Database db;
+		return db.valueExistsInTable(table, val);
+
 	}
 
+	 bool deleteEmp(std::string id) {
+		Database db;
+		std::cout << db.executeQueryD(std::string{ "DELETE FROM EMPLOYEE WHERE ID = '" } + id + "';") << "\n";
+		return true;
+	}
+	static std::string getTableName() {
+		return "Management";
+	}
+	static size_t getLastKey() {
+		return gettersetter.size() - 1;
+	}
 
 	bool setid(std::string str) {
 		if (Validation::validateID(str)) {
@@ -57,7 +70,7 @@ public:
 		if (Validation::validateID(str)) {
 			try {
 				empId = stoi(str);
-				if (CRUD<Employee>::isKeyPresent("Employee", str)) {
+				if (CRUD::isKeyPresent("Employee", str)) {
 					return true;
 				}
 				else {
@@ -86,22 +99,22 @@ public:
 	}
 
 	
-	std::map<int, getsetmap<Management>>& getMap() const {
+	static std::map<int, getsetmap<Management>>& getMap() {
 		return gettersetter;
 	}
 
 
 private:
-	MID id;
-	EID empId;
+	MID id{};
+	EID empId{};
 	std::string managementSpecialization;
 	int yearsOfExperience{};
 
 	inline static std::map<int, getsetmap<Management>> gettersetter = {
+		{0, getsetmap<Management>{"EmpId",& setEmpId,& getEmpId, false }},
 		{1, getsetmap<Management>{"ID",& setid,& getid, false }},
-		{2, getsetmap<Management>{"EmpId",& setEmpId,& getEmpId, false }},
-		{3, getsetmap<Management>{"ManagementSpecialization",& setManagementSpecialization,& getManagementSpecialization, false}},
-		{4, getsetmap<Management>{"YearsOfExperience",& setYearsOfExperience,& getYearsOfExperience, true}}
+		{2, getsetmap<Management>{"ManagementSpecialization",& setManagementSpecialization,& getManagementSpecialization, false}},
+		{3, getsetmap<Management>{"YearsOfExperience",& setYearsOfExperience,& getYearsOfExperience, true}}
 	};
 };
 #endif

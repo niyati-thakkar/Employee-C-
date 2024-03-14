@@ -24,7 +24,7 @@ public:
 	std::string getDescription() const {
 		return description;
 	}
-	std::string getTableName() const {
+	static std::string getTableName() {
 		return "Department";
 	}
 
@@ -72,15 +72,18 @@ public:
 		}
 		return false;
 	}
-	std::map<int, getsetmap<Department>>& getMap() const {
+	static std::map<int, getsetmap<Department>>& getMap() {
 		return gettersetter;
+	}
+	static size_t getLastKey() {
+		return gettersetter.size() - 1;
 	}
 
 	
 private:
-	DID id;
+	DID id{};
 	std::string deptName;
-	EID deptManagerId;
+	MID deptManagerId{};
 	std::string description;
 	inline static std::map<int, getsetmap<Department>> gettersetter = {
 		{1, getsetmap<Department>{"ID",& setid,& getid, false }},

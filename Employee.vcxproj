@@ -128,8 +128,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="include\Menu.h" />
-    <ClCompile Include="include\Utility.h" />
+    <ClInclude Include="include\Menu.h" />
+    <ClInclude Include="include\Utility.h" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="sqlite\shell.c" />
     <ClCompile Include="sqlite\sqlite3.c" />

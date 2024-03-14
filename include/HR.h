@@ -28,7 +28,7 @@ public:
 	}
 
 	
-	std::string getTableName() const {
+	static std::string getTableName() {
 		return "HR";
 	}
 
@@ -36,7 +36,7 @@ public:
 		if (Validation::validateID(str)) {
 			try {
 				empId = stoi(str);
-				if (CRUD<Employee>::isKeyPresent("Employee", str)) {
+				if (CRUD::isKeyPresent("Employee", str)) {
 					return true;
 				}
 				else {
@@ -86,13 +86,16 @@ public:
 		return false;
 
 	}
-	std::map<int, getsetmap<HR>>& getMap() const {
+	static std::map<int, getsetmap<HR>>& getMap() {
 		return gettersetter;
+	}
+	static size_t getLastKey() {
+		return gettersetter.size() - 1;
 	}
 
 private:
-	HID id;
-	EID empId;
+	HID id{};
+	EID empId{};
 	std::string proficientLangugae;
 	int recruitingExperience{};
 	inline static std::map<int, getsetmap<HR>> gettersetter = {

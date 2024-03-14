@@ -8,7 +8,7 @@
 #include "include/crud.h"
 
 int main() {
-	Employee e;
+	//Employee e;
 	/*CRUD<Employee>::deleteC(e);
 	CRUD<Employee>::viewC(e);*/
 	Menu::mainMenu();
@@ -16,4 +16,10 @@ int main() {
 	//std::cout << e.getDOB().length();
 //	e.setDeptId("2000001");
 //std::cout <<  e.getDeptId();
+	
+
+	/*std::cout << t.Employee::getTableName() << "\n";
+	std::cout << t.getTableName() << "\n";*/
+	//Menu::mainMenu();
+
 }

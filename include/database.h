@@ -40,6 +40,7 @@ public:
 			std::cout << sqlite3_last_insert_rowid(db) << "\n";
 			return "Query Executed successfully\n";
 		}
+		return "Query failed!\n";
 	}
 	std::string selectQueryD(std::string query) {
 		/* Create SQL statement */
@@ -56,6 +57,7 @@ public:
 		else {
 			return "Operation done successfully\n";
 		}
+		return "Query failed!\n";
 		
 	}
 	static int valueExistsCallback(void* exists, int argc, char** argv, char** azColName) {

@@ -30,6 +30,9 @@ public:
 			return std::to_string(empId);
 		return "";
 	}
+	static size_t getLastKey() {
+		return gettersetter.size() - 1;
+	}
 	bool setid(std::string str) {
 		if (Validation::validateID(str) && str[0] == '1' && str[1] == '1') {
 			try {
@@ -39,9 +42,10 @@ public:
 			catch (...) {
 				return false;
 			}
-			return false;
 			
+			return true;
 		}
+		return false;
 	}
 	bool setLocation(std::string loc) {
 		if (Validation::validateString(loc)) {
@@ -68,7 +72,7 @@ public:
 		if (Validation::validateID(str)) {
 			try {
 				empId = stoi(str);
-				if (CRUD<Address>::isKeyPresent("Employee", str)) {
+				if (CRUD::isKeyPresent("Employee", str)) {
 					return true;
 				}
 				else {
@@ -98,10 +102,10 @@ public:
 		}
 		return false;
 	}
-	std::string getTableName() const {
+	static std::string getTableName() {
 		return "Address";
 }
-	std::map<int, getsetmap<Address>>& getMap() const {
+	static std::map<int, getsetmap<Address>>& getMap() {
 		return gettersetter;
 	}
 private:
@@ -112,12 +116,12 @@ private:
 	std::string state;
 	PIN pincode;
 	inline static std::map<int, getsetmap<Address>> gettersetter = {
+		{0, getsetmap<Address>{"EmpId",& setEmpId,& getEmpId, false }},
 		{1, getsetmap<Address>{"ID",& setid,&getid, false }},
-		{2, getsetmap<Address>{"EmpId",& setEmpId,& getEmpId, false }},
-		{3, getsetmap<Address>{"Location",&setLocation,&getLocation, false}},
-		{4, getsetmap<Address>{"City",& setCity,& getCity, false}},
-		{5, getsetmap<Address>{"State",& setState,& getState, false}},
-		{6, getsetmap<Address>{"Pincode",& setPincode,& getPincode, false}}
+		{2, getsetmap<Address>{"Location",&setLocation,&getLocation, false}},
+		{3, getsetmap<Address>{"City",& setCity,& getCity, false}},
+		{4, getsetmap<Address>{"State",& setState,& getState, false}},
+		{5, getsetmap<Address>{"Pincode",& setPincode,& getPincode, false}}
 	};
 };
 
@@ -149,8 +153,8 @@ public:
 		return email;
 	}
 
-	std::string getAddress() const {
-		return "address";
+	Address& getAddress() {
+		return empAddr;
 	}
 
 	std::string getDeptId() const {
@@ -165,7 +169,7 @@ public:
 		return "";
 	}
 
-	std::string getTableName() const{
+	static std::string getTableName() {
 		return TABLE_NAME;
 	}
 
@@ -250,7 +254,7 @@ public:
 		if (Validation::validateID(str)) {
 			try {
 				deptId = stoi(str);
-				if (CRUD<Employee>::isKeyPresent("Department", str)) {
+				if (CRUD::isKeyPresent("Department", str)) {
 					return true;
 				}
 				else {
@@ -268,7 +272,7 @@ public:
 		if (Validation::validateID(str)) {
 			try {
 				reportingManagerId = stoi(str);
-				if (CRUD<Employee>::isKeyPresent("Employee", str)) {
+				if (CRUD::isKeyPresent("Employee", str)) {
 					return true;
 				}
 				else {
@@ -285,6 +289,10 @@ public:
 
 	std::map<int, getsetmap<Employee>>& getMap() const {
 		return gettersetter;
+	}
+
+	static size_t getLastKey() {
+		return gettersetter.size();
 	}
 	
 private:
