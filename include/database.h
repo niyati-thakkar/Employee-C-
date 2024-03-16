@@ -73,8 +73,8 @@ public:
 		return 0;
 	}
 
-	bool valueExistsInTable(const std::string& tableName, const std::string& value) {
-		std::string query = "SELECT 1 FROM " + tableName + " WHERE id = '" + value + "';";
+	bool valueExistsInTable(const std::string& tableName, const std::string& col, const std::string& value) {
+		std::string query = "SELECT 1 FROM " + tableName + " WHERE " + col + " = '" + value + "'; ";
 
 		char* zErrMsg = nullptr;
 		int exists = 0;
