@@ -306,11 +306,18 @@ namespace QueryE {
 		}
 		auto t2 = e.getTableName();
 		auto t1 = e.Employee::getTableName(); 
-		std::string where = " WHERE " + t1 + "." + e.Employee::getMap()[1].name + " = " + t2 + "." + e.getMap()[0].name;
-		std::string query = std::string{ "SELECT " } + fields.substr(0, fields.length() - 2) + std::string{ " from " } + t1 + "," + t2 + where + ";";
-
+		std::string query = std::string{ "SELECT " } + fields.substr(0, fields.length() - 2) + std::string{ " from " } + t1 + " JOIN " + t2 + " ON " + t1 + "." + e.Employee::getMap()[1].name + " = " + t2 + "." + e.getMap()[0].name + ";";
 		return query;
 	}
+
+	template<typename T1, typename T2 = T1>
+	std::string whereQuery(T1& e, getsetmap<T2> map) {
+		std::string table = T2::getTableName();
+		
+		std::string query = std::string{ " WHERE " } + table + "." + map.name + " = '" + (e.*map.getter)() + "';";
+		return query;
+	}
+
 	template<typename T>
 	std::string viewQuery(T& e, std::vector<std::string> cols) {
 		std::string fields = "";
@@ -376,7 +383,7 @@ namespace CRUD {
 
 	bool deleteEmp(std::string id) {
 		Database db;
-		std::cout << db.executeQueryD(std::string{ "DELETE FROM EMPLOYEE WHERE ID = '" } + id + "';") << "\n";
+		std::cout << db.executeQueryD(std::string{ "DELETE FROM EMPLOYEE WHERE EmpId = '" } + id + "';") << "\n";
 		return true;
 	}
 	template<typename T1, typename T2 = T1>
@@ -403,7 +410,41 @@ namespace CRUD {
 		return true;
 
 	}
+	template<typename T1>
+	std::string whereHelper(T1& e, std::map<int, getsetmap<T1>>& map) {
+		int i = 1;
+		for (auto& [id, strct] : map) {
+			std::cout << i++ << ". " << strct.name << "\n";
+		}
+		int selection;
+		std::cin >> selection;
+		if (selection <= 0 || selection > T1::getLastKey()) return "";
+		Utility::getUserInput(e, map[selection]);
+		return QueryE::whereQuery(e, map[selection]);
+	}
+	template<typename T1, typename T2 = T1>
+	std::string whereHelper(T1& e, std::map<int, getsetmap<T1>>& map1, std::map<int, getsetmap<T2>>& map2) {
+		int i = 1;
+		for (; i <= e.T2::getLastKey(); i++) {
+			std::cout << i << ". " << map2[i].name << "\n";
+		}
+		for (; i - e.T2::getLastKey() <= e.T1::getLastKey(); i++) {
+			std::cout << i << ". " << map1[i - e.T2::getLastKey()].name << "\n";
+		}
+		int selection;
+		std::cin >> selection;
+		if (selection <= 0 || selection >= i) return "";
+		if (selection <= e.T2::getLastKey()) {
+			Utility::getUserInput(e, map1[selection]);
+			return QueryE::whereQuery(e, map1[selection]);
+		}
+		else {
+			selection -= e.T2::getLastKey();
+			Utility::getUserInput(e, map2[selection]);
+			return QueryE::whereQuery(e, map2[selection]);
+		}
 
+	}
 	template<typename T>
 	void viewHelper(bool takeAll, std::string table, std::map<int, getsetmap<T>> & map, size_t lastkey, std::vector<std::string>& cols) {
 		if (takeAll) {
@@ -459,39 +500,51 @@ namespace CRUD {
 	}
 	 template<typename T1, typename T2 = T1>
 	 bool viewC(T1& e) {
-		 int option = Utility::takeOption("View Entire Table", "View by Columns");
+		 int option = Utility::takeOption("View Entire Table", "View by Columns", "View by Rows");
 		 std::vector<std::string> cols;
 		 std::string query;
 		 auto table1 = e.Employee::getTableName();
 		 auto table2 = e.getTableName();
 		 auto& empmap = e.Employee::getMap();
 		 auto& map = e.getMap();
-		 bool takeAll = option == 1 ? true : false;
+		 bool takeAll = option == 1 || option == 3 ? true : false;
 		 viewHelper(takeAll, table1, empmap, e.Employee::getLastKey(), cols);
 		 viewHelper(takeAll, table2, map, e.getLastKey(), cols);
 		 query = QueryE::viewQueryC(e, cols);
+		 std::string wherequery;
+		 if (option == 3) {
+			 int selection;
+			 int i = 1;
+			 query = query.substr(0, query.length() - 1) + whereHelper(e, map, empmap);
+		 }
 		 Database db;
 		 std::cout << db.selectQueryD(query) << "\n";
 		 return true;
 	 }
 	 
+	 
 	 template<typename T1, typename T2 = T1>
 	 bool view(T1& e) {
-		 int option = Utility::takeOption("View Entire Table", "View by Columns");
+		 int option = Utility::takeOption("View Entire Table", "View by Columns", "View by Rows");
 		 std::vector<std::string> cols;
 		 std::string query;
 		 auto table = e.getTableName();
 		 auto& map = e.getMap();
-		 bool takeAll = option == 1 ? true : false;
+		 bool takeAll = option == 1 || option == 3 ? true : false;
 		 viewHelper(takeAll, table, map, e.getLastKey(), cols);
 		 query = QueryE::viewQuery(e, cols);
+		 if (option == 3) {
+			 query = query.substr(0, query.length() - 1) + whereHelper(e, map);
+		 }
+		 std::cout << query << "\n";
 		 Database db;
-		 std::cout << db.selectQueryD(query) << "\n";
+		 db.selectQueryD(query);
 		 return true;
 	 }
+	 
 	template<typename T1, typename T2 = T1>
 	 bool updateC(T1& e) {
-		return true;
+		
 	}
 	template<typename T1, typename T2 = T1>
 	 bool update(T1& e) {
@@ -505,8 +558,7 @@ namespace CRUD {
 	 bool removeC(T1& e) {
 		return true;
 	}
-	
-	 
+	         
 }
 
 #endif

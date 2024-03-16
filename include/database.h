@@ -2,11 +2,14 @@
 #define _DATABASE_H_
 #include<iostream>
 #include<string>
+#include "Log.h"
 #include "../sqlite/sqlite3.h"
 class Database {
 	sqlite3* db;
 	char* zErrMsg = 0;
 	int rc;
+	Lognspace::Log logger{ Lognspace::Log::Level::LevelInfo, "EmployeeDatabase.txt"};
+
 public:
 	static int callback(void* NotUsed, int argc, char** argv, char** azColName) {
 		int i;
@@ -23,13 +26,13 @@ public:
 			return;
 		}
 		else {
-			std::cout << " database opened successfully" << "\n";
+			logger.Info("Database opened successfully");
 		}
 	}
 	~Database() {
 		sqlite3_close(db);
 	}
-	std::string executeQueryD(std::string query) {
+	bool executeQueryD(std::string query) {
 		const char* sqlq = query.c_str();
 		rc = sqlite3_exec(db, sqlq, callback, 0, &zErrMsg);
 		if (rc != SQLITE_OK) {
@@ -37,12 +40,14 @@ public:
 			sqlite3_free(zErrMsg);
 		}
 		else {
-			std::cout << sqlite3_last_insert_rowid(db) << "\n";
-			return "Query Executed successfully\n";
+			//std::cout << sqlite3_last_insert_rowid(db) << "\n";
+			logger.Info("Query Executed successfully");
+			return true;
 		}
-		return "Query failed!\n";
+		logger.Error("Query failed!");
+		return false;
 	}
-	std::string selectQueryD(std::string query) {
+	bool selectQueryD(std::string query) {
 		/* Create SQL statement */
 		/* Create SQL statement */
 		const char* sql = query.c_str();
@@ -55,9 +60,11 @@ public:
 			sqlite3_free(zErrMsg);
 		}
 		else {
-			return "Operation done successfully\n";
+			logger.Info("Operation done successfully");
+			return true;
 		}
-		return "Query failed!\n";
+		logger.Error("Query failed!");
+		return false;
 		
 	}
 	static int valueExistsCallback(void* exists, int argc, char** argv, char** azColName) {

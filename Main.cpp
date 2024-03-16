@@ -12,6 +12,7 @@ int main() {
 	/*CRUD<Employee>::deleteC(e);
 	CRUD<Employee>::viewC(e);*/
 	Menu::mainMenu();
+	std::cout << Employee::getTableName();
 	/*std::cout << e.setDOB("23-01-2003");*/
 	//std::cout << e.getDOB().length();
 //	e.setDeptId("2000001");

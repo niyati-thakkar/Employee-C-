@@ -308,7 +308,7 @@ private:
 	EID reportingManagerId{};
 	static inline std::string TABLE_NAME = "Employee";
 	inline static std::map<int, getsetmap<Employee>> gettersetter = {
-		{1, getsetmap<Employee>{"ID",& setid,& getid, false }},
+		{1, getsetmap<Employee>{"EmpId",& setid,& getid, false }},
 		{2, getsetmap<Employee>{"FirstName",& setFname,& getFname, false}},
 		{3, getsetmap<Employee>{"MiddleName",& setMname,& getMname, true}},
 		{4, getsetmap<Employee>{"LastName",& setLname,& getLname, false}},

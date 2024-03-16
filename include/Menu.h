@@ -76,7 +76,7 @@ namespace Menu {
                 break;
             }
             case 2: {
-                CRUD::view(t);
+                CRUD::viewC(t);
                 break;
             }
             case 3: {
@@ -103,7 +103,7 @@ namespace Menu {
                 break;
             }
             case 2: {
-                CRUD::view(m);
+                CRUD::viewC(m);
                 break;
             }
             case 3: {
@@ -130,7 +130,7 @@ namespace Menu {
                 break;
             }
             case 2: {
-                CRUD::view(h);
+                CRUD::viewC(h);
                 break;
             }
             case 3: {
