@@ -287,7 +287,7 @@ public:
 		return false;
 	}
 
-	std::map<int, getsetmap<Employee>>& getMap() const {
+	static std::map<int, getsetmap<Employee>>& getMap() {
 		return gettersetter;
 	}
 

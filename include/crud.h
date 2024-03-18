@@ -335,13 +335,13 @@ namespace QueryE {
 	}
 
 	template<typename T1>
-	std::string updateQuery(T1& e, std::vector<std::string> cols) {
+	std::string updateQuery(T1& e, std::vector<int> cols) {
 		auto& map = T1::getMap();
-		std::string query = "UPDATE " + e.getTableName() + " SET ";
+		std::string query = "UPDATE " + T1::getTableName() + " SET ";
 		for (auto& id : cols) {
 			query = query + map[id].name + " = '" + (e.*map[id].getter)() + "', ";
 		}
-		query = query.substr(0, query.length() - 2) + " WHERE " + map[where].name + " = '" + (e.*map[where].getter)() + "';";
+		query = query.substr(0, query.length() - 2);
 		return query;
 	}
 	/*template<typename T1, typename T2>
@@ -436,7 +436,7 @@ namespace CRUD {
 					if (Utility::getUserInput(e, map[i])) {
 						indices.push_back(i);
 					}
-				} while (utility::tryAgain());
+				} while (Utility::tryAgain());
 			}
 		}
 		return true;
@@ -454,7 +454,7 @@ namespace CRUD {
 		std::cin >> selection;
 		if (selection <= 0 || selection > T1::getLastKey()) return "";
 		do {
-			if (Utility::getUserInput(e, map[selection])) return true;
+			if (Utility::getUserInput(e, map[selection])) break;
 		} while (Utility::tryAgain());
 
 		return QueryE::whereQuery(e, map[selection]);
@@ -553,7 +553,7 @@ namespace CRUD {
 		auto& map = T2::getMap();
 		viewHelper(takeAll - 1, table1, empmap, T1::getLastKey(), cols);
 		viewHelper(takeAll - 1, table2, map, T2::getLastKey(), cols);
-		query = QueryE::viewQueryC(e, cols);
+		query = QueryE::viewQueryC<T1, T2>(e, cols);
 		switch (option) {
 		case 0:
 			return true;
@@ -622,16 +622,16 @@ namespace CRUD {
 	}
 
 	template<typename T1, typename T2>
-	bool updateC(T1& e) {
+	bool updateC(T2& e) {
 		int option = Utility::takeOption("Update by EmpID", (std::string{ "Update by " } + e.getTableName() + " ID"));
 		std::string wherequery1, wherequery2;
 		if (option == 0) return true;
 		if (option == 1) {
 			do {
 				if (Utility::getUserInput(e, T2::getMap()[0])) {
-					if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[0].name, (T2::*e.getMap()[0].getter)())) {
+					if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[0].name, (e.*T2::getMap()[0].getter)())) {
 						wherequery1 = QueryE::whereQuery(e, T2::getMap()[0]);
-						(*T1::getMap().setter((*T2::getMap()[0].getter)()))();
+						(e.*T1::getMap()[1].setter)((e.*T2::getMap()[0].getter)());
 						wherequery2 = QueryE::whereQuery(e, T1::getMap()[1]);
 						break;
 					}
@@ -641,29 +641,28 @@ namespace CRUD {
 		else {
 			do {
 				if (Utility::getUserInput(e, T2::getMap()[1])) {
-					if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[1].name, (T2::*e.getMap()[1].getter)())) {
+					if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[1].name, (e.*T2::getMap()[1].getter)())) {
 						wherequery1 = QueryE::whereQuery(e, T2::getMap()[1]);
-						(*T1::getMap().setter(db.getColValue(T2::getTableName(), temp.name, (e.*temp.getter)(), T2::getMap()[0].name))();
+						(e.*T1::getMap()[1].setter)(db.getColValue(T2::getTableName(), T2::getMap()[1].name, (e.*T2::getMap()[1].getter)(), T2::getMap()[0].name));
 						wherequery2 = QueryE::whereQuery(e, T1::getMap()[1]);
 						break;
 					}
 				}
 			} while (Utility::tryAgain());
 		}
-		vector<int> indices1;
+		std::vector<int> indices1;
 		updateHelper(e, T1::getMap(), indices1);
 		std::string query1 = QueryE::updateQuery(e, indices1) + wherequery1;
 
 		Database db;
-		if (!db.executeQueryD((query + wherequery))) return false;
+		if (!db.executeQueryD((query1))) return false;
 
 
-		vector<int> indices2;
+		std::vector<int> indices2;
 		updateHelper(e, T2::getMap(), indices2);
-		std::string query1 = QueryE::updateQuery(e, indices) + wherequery2;
+		std::string query2 = QueryE::updateQuery(e, indices2) + wherequery2;
 
-		Database db;
-		db.executeQueryD((query + wherequery));
+		db.executeQueryD((query2));
 		return true;
 	}
 
@@ -671,6 +670,7 @@ namespace CRUD {
 	bool update(T1& e) {
 		int option = Utility::takeOption("Update by ID");
 		if (option == 0) return true;
+		std::string query;
 		do {
 			if (Utility::getUserInput(e, e.getMap()[1])) {
 				if (Database db; db.valueExistsInTable(e.getTableName(), e.getMap()[1].name, (e.*e.getMap()[1].getter)())) {
@@ -680,8 +680,8 @@ namespace CRUD {
 			}
 		} while (Utility::tryAgain());
 
-		vector<int> indices;
-		updateHelper(e, indices);
+		std::vector<int> indices;
+		updateHelper(e, T1::getMap(), indices);
 		query = QueryE::updateQuery(e, indices) + query;
 
 		Database db;
@@ -713,14 +713,14 @@ namespace CRUD {
 	template<typename T1, typename T2>
 	bool removeC(T2& e) {
 		int option = Utility::takeOption("Delete by EmpID", (std::string{ "Delete by " } + T2::getTableName() + " ID"), "Delete by column value");
-		if (option == 0) return;
+		if (option == 0) return true;
 		std::string query;
 		std::string tablename;
 		switch (option) {
 		case 1: {
 			do {
 				if (Utility::getUserInput(e, T2::getMap()[0])) {
-					if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[0], (e.*T2::getMap()[0].getter)())) {
+					if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[0].name, (e.*T2::getMap()[0].getter)())) {
 						query += QueryE::whereQuery(e, T2::getMap()[0]);
 						break;
 					}
@@ -730,7 +730,7 @@ namespace CRUD {
 		case 2: {
 			do {
 				if (Utility::getUserInput(e, T2::getMap()[1])) {
-					if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[1], (e.*T2::getMap()[1].getter)())) {
+					if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[1].name, (e.*T2::getMap()[1].getter)())) {
 						query += QueryE::whereQuery(e, T2::getMap()[1]);
 						break;
 					}
