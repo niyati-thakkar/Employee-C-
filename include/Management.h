@@ -27,13 +27,13 @@ public:
 			return std::to_string(empId);
 		return "";
 	}
-	static bool isKeyPresent(std::string table, std::string val) {
+	static bool isKeyPresent(std::string table, std::string col, std::string val) {
 		Database db;
-		return db.valueExistsInTable(table, val);
+		return db.valueExistsInTable(table, col, val);
 
 	}
 
-	 bool deleteEmp(std::string id) {
+	bool deleteEmp(std::string id) {
 		Database db;
 		std::cout << db.executeQueryD(std::string{ "DELETE FROM EMPLOYEE WHERE ID = '" } + id + "';") << "\n";
 		return true;
@@ -70,7 +70,7 @@ public:
 		if (Validation::validateID(str)) {
 			try {
 				empId = stoi(str);
-				if (CRUD::isKeyPresent("Employee", str)) {
+				if (CRUD::isKeyPresent("Employee", "EmpId", str)) {
 					return true;
 				}
 				else {
@@ -98,7 +98,7 @@ public:
 
 	}
 
-	
+
 	static std::map<int, getsetmap<Management>>& getMap() {
 		return gettersetter;
 	}

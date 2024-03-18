@@ -27,7 +27,7 @@ public:
 		return "";
 	}
 
-	
+
 	static std::string getTableName() {
 		return "HR";
 	}
@@ -36,7 +36,7 @@ public:
 		if (Validation::validateID(str)) {
 			try {
 				empId = stoi(str);
-				if (CRUD::isKeyPresent("Employee", str)) {
+				if (CRUD::isKeyPresent("Employee", "EmpId", str)) {
 					return true;
 				}
 				else {

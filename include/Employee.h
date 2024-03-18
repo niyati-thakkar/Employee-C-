@@ -72,7 +72,7 @@ public:
 		if (Validation::validateID(str)) {
 			try {
 				empId = stoi(str);
-				if (CRUD::isKeyPresent("Employee", str)) {
+				if (CRUD::isKeyPresent("Employee","EmpId", str)) {
 					return true;
 				}
 				else {
@@ -254,7 +254,7 @@ public:
 		if (Validation::validateID(str)) {
 			try {
 				deptId = stoi(str);
-				if (CRUD::isKeyPresent("Department", str)) {
+				if (CRUD::isKeyPresent("Department","ID", str)) {
 					return true;
 				}
 				else {
@@ -272,7 +272,7 @@ public:
 		if (Validation::validateID(str)) {
 			try {
 				reportingManagerId = stoi(str);
-				if (CRUD::isKeyPresent("Employee", str)) {
+				if (CRUD::isKeyPresent("Employee", "EmpId", str)) {
 					return true;
 				}
 				else {

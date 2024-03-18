@@ -8,7 +8,7 @@ class Database {
 	sqlite3* db;
 	char* zErrMsg = 0;
 	int rc;
-	Lognspace::Log logger{ Lognspace::Log::Level::LevelInfo, "EmployeeDatabase.txt"};
+	Lognspace::Log logger{ Lognspace::Log::Level::LevelInfo, "EmployeeDatabase.txt" };
 
 public:
 	static int callback(void* NotUsed, int argc, char** argv, char** azColName) {
@@ -65,7 +65,7 @@ public:
 		}
 		logger.Error("Query failed!");
 		return false;
-		
+
 	}
 	static int valueExistsCallback(void* exists, int argc, char** argv, char** azColName) {
 		int* result = static_cast<int*>(exists);
@@ -108,5 +108,58 @@ public:
 
 		return lastID;
 	}
+
+	std::string getColValue(const std::string& tableName, const std::string& columnName, const std::string& primaryKey, const std::string& columnToFetch) {
+		sqlite3_stmt* stmt;
+		std::string result;
+
+		// Open the database
+		rc = sqlite3_open("database.db", &db);
+		if (rc) {
+			std::cerr << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
+			sqlite3_close(db);
+			return "";
+		}
+
+		// Prepare SQL statement
+		std::string sql = "SELECT " + columnToFetch + " FROM " + tableName + " WHERE " + columnName + " = ?;";
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+		if (rc != SQLITE_OK) {
+			std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+			sqlite3_close(db);
+			return "";
+		}
+
+		// Bind primary key parameter
+		rc = sqlite3_bind_text(stmt, 1, primaryKey.c_str(), -1, SQLITE_STATIC);
+		if (rc != SQLITE_OK) {
+			std::cerr << "Failed to bind parameter: " << sqlite3_errmsg(db) << std::endl;
+			sqlite3_finalize(stmt);
+			sqlite3_close(db);
+			return "";
+		}
+
+		// Execute the statement
+		rc = sqlite3_step(stmt);
+		if (rc == SQLITE_ROW) {
+			// Retrieve the value from the result set
+			const unsigned char* colValue = sqlite3_column_text(stmt, 0);
+			if (colValue)
+				result = reinterpret_cast<const char*>(colValue);
+		}
+		else if (rc == SQLITE_DONE) {
+			std::cerr << "No rows returned." << std::endl;
+		}
+		else {
+			std::cerr << "Error fetching row: " << sqlite3_errmsg(db) << std::endl;
+		}
+
+		// Finalize and close
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+
+		return result;
+	}
+
 };
 #endif
