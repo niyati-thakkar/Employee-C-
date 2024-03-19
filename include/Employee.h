@@ -30,11 +30,17 @@ public:
 			return std::to_string(empId);
 		return "";
 	}
+	static std::string getTableName() {
+		return TABLE_NAME;
+	}
+	static std::map<int, getsetmap<Address>>& getMap() {
+		return gettersetter;
+	}
 	static size_t getLastKey() {
 		return gettersetter.size() - 1;
 	}
 	bool setid(std::string str) {
-		if (Validation::validateID(str) && str[0] == '1' && str[1] == '1') {
+		if (Validation::validateID(str) && str[0] == '6') {
 			try {
 				id = stoi(str);
 				return true;
@@ -69,7 +75,7 @@ public:
 		return false;
 	}
 	bool setEmpId(std::string str) {
-		if (Validation::validateID(str)) {
+		if (Validation::validateID(str) && str[0] == '1') {
 			try {
 				empId = stoi(str);
 				if (CRUD::isKeyPresent("Employee","EmpId", str)) {
@@ -102,12 +108,7 @@ public:
 		}
 		return false;
 	}
-	static std::string getTableName() {
-		return "Address";
-}
-	static std::map<int, getsetmap<Address>>& getMap() {
-		return gettersetter;
-	}
+	
 private:
 	AID id;
 	EID empId;
@@ -115,6 +116,7 @@ private:
 	std::string city;
 	std::string state;
 	PIN pincode;
+	static inline std::string TABLE_NAME = "ADDRESS";
 	inline static std::map<int, getsetmap<Address>> gettersetter = {
 		{0, getsetmap<Address>{"EmpId",& setEmpId,& getEmpId, false }},
 		{1, getsetmap<Address>{"ID",& setid,&getid, false }},
@@ -129,8 +131,11 @@ private:
 class Employee {
 	
 public:
+
+	/**********************************************************************************		getters	*************************************************************************************/
+
 	std::string getid() const{
-		if(Validation::validateID(std::to_string(id)))
+		if(id!=0)
 			return std::to_string(id);
 		return "";
 	}
@@ -158,13 +163,13 @@ public:
 	}
 
 	std::string getDeptId() const {
-		if (Validation::validateID(std::to_string(deptId)))
+		if (deptId != 0)
 			return std::to_string(deptId);
 		return "";
 	}
 
 	std::string getReportingManagerId() const {
-		if (Validation::validateID(std::to_string(reportingManagerId)))
+		if (reportingManagerId != 0)
 			return std::to_string(reportingManagerId);
 		return "";
 	}
@@ -176,9 +181,22 @@ public:
 	std::string getDOB() const {
 		return DOB;
 	}
+	std::string getJoiningDate() const {
+		return joiningDate;
+	}
+	static std::map<int, getsetmap<Employee>>& getMap() {
+		return gettersetter;
+	}
+
+	static size_t getLastKey() {
+		return gettersetter.size();
+	}
+
+	/**********************************************************************************		setters	*************************************************************************************/
+
 
 	bool setid(std::string i) {
-		if (Validation::validateID(i)) {
+		if (Validation::validateID(i) && i[0] == '1') {
 			try {
 				id = stoi(i);
 				return true;
@@ -250,15 +268,24 @@ public:
 		}
 		return false;
 	}
+	bool setJoiningDate(std::string str) {
+		if (Validation::validateDate(str)) {
+			joiningDate = str;
+			return true;
+		}
+		return false;
+	}
 	bool setDeptId(std::string str) {
-		if (Validation::validateID(str)) {
+		if (Validation::validateID(str) && str[0] == '2') {
 			try {
 				deptId = stoi(str);
 				if (CRUD::isKeyPresent("Department","ID", str)) {
 					return true;
 				}
 				else {
+					deptId = 0;
 					std::cout << "Department with given ID doesn't exists!" << "\n";
+					return false;
 				}
 			}
 			catch (...) {
@@ -269,14 +296,17 @@ public:
 	}
 
 	bool setReportingManagerId(std::string str) {
-		if (Validation::validateID(str)) {
+		if (Validation::validateID(str) && str[0] == '1') {
 			try {
 				reportingManagerId = stoi(str);
+				std::cout << reportingManagerId << "\n";
 				if (CRUD::isKeyPresent("Employee", "EmpId", str)) {
 					return true;
 				}
 				else {
+					reportingManagerId = 0;
 					std::cout << "Employee with given ID doesn't exists!" << "\n";
+					return false;
 				}
 				
 			}
@@ -287,13 +317,6 @@ public:
 		return false;
 	}
 
-	static std::map<int, getsetmap<Employee>>& getMap() {
-		return gettersetter;
-	}
-
-	static size_t getLastKey() {
-		return gettersetter.size();
-	}
 	
 private:
 	EID id{};
@@ -303,6 +326,7 @@ private:
 	std::string contact;
 	std::string email;
 	std::string DOB;
+	std::string joiningDate;
 	Address empAddr;
 	DID deptId{};
 	EID reportingManagerId{};
@@ -315,8 +339,9 @@ private:
 		{5, getsetmap<Employee>{"Contact",& setContact,& getContact, false}},
 		{6, getsetmap<Employee>{"Email",& setEmail,& getEmail, true}},
 		{7, getsetmap<Employee>{"DOB",&setDOB, &getDOB, false}},
-		{8, getsetmap<Employee>{"DepartmentID",& setDeptId,& getDeptId, false}},
-		{9, getsetmap<Employee>{"ReportingManagerID",& setReportingManagerId,& getReportingManagerId, true}},
+		{8, getsetmap<Employee>{"JoiningDate",& setJoiningDate,& getJoiningDate, false}},
+		{9, getsetmap<Employee>{"DepartmentID",& setDeptId,& getDeptId, false}},
+		{10, getsetmap<Employee>{"ReportingManagerID",& setReportingManagerId,& getReportingManagerId, true}},
 	};
 };
 

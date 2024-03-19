@@ -19,19 +19,23 @@ namespace Menu {
 	void employeeMenu() {
 		bool whileFlag = true;
 		do {
-			int option = Utility::takeOption("View Employee(s)", "Update Employee(s)", "Delete Employee(s)");
+			int option = Utility::takeOption("Insert Employee(s)", "View Employee(s)", "Update Employee(s)", "Delete Employee(s)");
 			if (option == 0) return;
 			Employee e;
 			switch (option) {
 			case 1: {
-				CRUD::view<Employee>(e);
+				CRUD::insert<Employee>(e);
 				break;
 			}
 			case 2: {
-				CRUD::update<Employee>(e);
+				CRUD::view<Employee>(e);
 				break;
 			}
 			case 3: {
+				CRUD::update<Employee>(e);
+				break;
+			}
+			case 4: {
 				CRUD::remove<Employee>(e);
 				break;
 			}

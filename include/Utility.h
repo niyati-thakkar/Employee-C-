@@ -28,10 +28,10 @@ namespace Validation {
 		return id.length() == 7;
 	}
 	bool validateString(std::string str) {
-		if (str.length() == 0) {
-			return false;
+		if (str.length() != 0 && std::regex_match(str, std::regex("^[a-zA-Z][-a-zA-Z ']{1,49}$"))) {
+			return true;
 		}
-		return true;
+		return false;
 	}
 	bool validatePincode(std::string str) {
 		return str.length() == 6;
@@ -60,24 +60,46 @@ namespace Utility {
 	template <template<class...> class T, class T1, class T2>
 	struct are_same_template<T<T1>, T<T2>> : std::true_type
 	{};
+	template<typename T1>
+	[[nodiscard]] bool setInput(T1& res) {
+		std::string arg;
+		std::getline(std::cin, arg);
+		if constexpr (std::is_same_v<T1, std::string>) {
+			res = arg;
+		}
+		else if constexpr (std::is_arithmetic_v <T1>) {
+			try {
+				res = stoi(arg);
+			}
+			catch (...) {
+				return false;
+			}
+		}
+		else {
+			res = arg[0];
+		}
+		return true;
+	}
 
 	bool tryAgain() {
 		std::cout << "The entered value is not valid. Do you wish to try again?\n1. YES\n2. NO, Go Back to previous Menu!\n";
 		int opt;
-		std::cin >> opt;
-		return opt == 1 ? true : false;
+		if (setInput(opt))
+			return opt == 1;
+		return false;
 	}
+	
 	template < typename T1, typename T2>
 	[[nodiscard]] bool getUserInput(T1& e, getsetmap < T2 >& map) {
 		do {
 			std::cout << "Enter " << map.name << "\n";
 			std::string temp;
-			std::cin >> temp;
-			if ((e.*map.setter)(temp)) {
-				return true;
+			if (setInput(temp)) {
+				if ((e.*map.setter)(temp)) {
+					return true;
+				}
 			}
 		} while (tryAgain());
-
 		return false;
 	}
 	template < typename...Args >
@@ -86,21 +108,21 @@ namespace Utility {
 		int i = 1;
 		((std::cout << i++ << ". " << std::forward < Args >(args) << " \n"), ...);
 		std::cout << Utility::exitMessage << "\n";
-		int option;
-		std::cin >> option;
-		if (option == 100) {
-			exit(0);
+		int option = 0;
+		if (setInput(option)) {
+			if (option == 100) {
+				exit(0);
+			}
+			if (option < 0 || option >= i) {
+				std::cout << "Please enter a valid option" << "\n";
+				if (setInput(option) && (option < 0 || option >= i)) {
+					std::cout << "Invalid Option Selected!" << "\n";
+					return 0;
+				}
+			}
 		}
-		if (option < 0 || option >= i) {
-			std::cout << "Please enter a valid option" << "\n";
-			std::cin >> option;
-		}
-		if (option < 0 || option >= i) {
-			std::cout << "Invalid Option Selected!" << "\n";
-			return 0;
-		}
+		
 		return option;
-
 	}
 };
 #endif

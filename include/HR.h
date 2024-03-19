@@ -8,8 +8,10 @@
 
 class HR : public Employee {
 public:
+	/**********************************************************************************		getters	*************************************************************************************/
+
 	std::string getid() const {
-		if (Validation::validateID(std::to_string(id)))
+		if (id != 0)
 			return std::to_string(id);
 		return "";
 	}
@@ -29,11 +31,19 @@ public:
 
 
 	static std::string getTableName() {
-		return "HR";
+		return TABLE_NAME;
+	}
+	static std::map<int, getsetmap<HR>>& getMap() {
+		return gettersetter;
+	}
+	static size_t getLastKey() {
+		return gettersetter.size() - 1;
 	}
 
+	/**********************************************************************************		setters		*************************************************************************************/
+
 	bool setEmpId(std::string str) {
-		if (Validation::validateID(str)) {
+		if (Validation::validateID(str) && str[0] == '1') {
 			try {
 				empId = stoi(str);
 				if (CRUD::isKeyPresent("Employee", "EmpId", str)) {
@@ -52,7 +62,7 @@ public:
 	}
 
 	bool setid(std::string str) {
-		if (Validation::validateID(str)) {
+		if (Validation::validateID(str) && str[0] == '5') {
 			try {
 				id = stoi(str);
 				return true;
@@ -74,35 +84,29 @@ public:
 	}
 
 	bool setRecruitingExperience(std::string str) {
-		if (Validation::validateID(str)) {
-			try {
-				recruitingExperience = stoi(str);
-				return true;
-			}
-			catch (...) {
-				return false;
-			}
+		try {
+			recruitingExperience = stoi(str);
+			return true;
+		}
+		catch (...) {
+			return false;
 		}
 		return false;
 
 	}
-	static std::map<int, getsetmap<HR>>& getMap() {
-		return gettersetter;
-	}
-	static size_t getLastKey() {
-		return gettersetter.size() - 1;
-	}
+	
 
 private:
 	HID id{};
 	EID empId{};
 	std::string proficientLangugae;
 	int recruitingExperience{};
+	inline static std::string TABLE_NAME = "HR";
 	inline static std::map<int, getsetmap<HR>> gettersetter = {
+		{0, getsetmap<HR>{"EmpId",& setEmpId,& getEmpId, false }},
 		{1, getsetmap<HR>{"ID",& setid,& getid, false }},
-		{2, getsetmap<HR>{"EmpId",& setEmpId,& getEmpId, false }},
-		{3, getsetmap<HR>{"ProficientLangugae",& setProficientLangugae,& getProficientLangugae, false}},
-		{4, getsetmap<HR>{"RecruitingExperience",& setRecruitingExperience,& getRecruitingExperience, true}}
+		{2, getsetmap<HR>{"ProficientLangugae",& setProficientLangugae,& getProficientLangugae, false}},
+		{3, getsetmap<HR>{"RecruitingExperience",& setRecruitingExperience,& getRecruitingExperience, true}}
 	};
 };
 #endif

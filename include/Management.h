@@ -8,8 +8,11 @@
 
 class Management : public Employee {
 public:
+
+	/**********************************************************************************		getters		*************************************************************************************/
+
 	std::string getid() const {
-		if (Validation::validateID(std::to_string(id)))
+		if (id != 0)
 			return std::to_string(id);
 		return "";
 	}
@@ -45,8 +48,11 @@ public:
 		return gettersetter.size() - 1;
 	}
 
+	/**********************************************************************************		setters	*************************************************************************************/
+
+
 	bool setid(std::string str) {
-		if (Validation::validateID(str)) {
+		if (Validation::validateID(str) && str[0] == '3') {
 			try {
 				id = stoi(str);
 				return true;
@@ -67,7 +73,7 @@ public:
 		return false;
 	}
 	bool setEmpId(std::string str) {
-		if (Validation::validateID(str)) {
+		if (Validation::validateID(str) && str[0] == '1') {
 			try {
 				empId = stoi(str);
 				if (CRUD::isKeyPresent("Employee", "EmpId", str)) {
@@ -85,14 +91,12 @@ public:
 		return false;
 	}
 	bool setYearsOfExperience(std::string str) {
-		if (Validation::validateID(str)) {
-			try {
-				yearsOfExperience = stoi(str);
-				return true;
-			}
-			catch (...) {
-				return false;
-			}
+		try {
+			yearsOfExperience = stoi(str);
+			return true;
+		}
+		catch (...) {
+			return false;
 		}
 		return false;
 
@@ -109,7 +113,7 @@ private:
 	EID empId{};
 	std::string managementSpecialization;
 	int yearsOfExperience{};
-
+	static inline std::string TABLE_NAME = "MANAGEMENT";
 	inline static std::map<int, getsetmap<Management>> gettersetter = {
 		{0, getsetmap<Management>{"EmpId",& setEmpId,& getEmpId, false }},
 		{1, getsetmap<Management>{"ID",& setid,& getid, false }},

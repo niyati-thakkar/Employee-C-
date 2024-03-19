@@ -10,11 +10,14 @@
 
 
 class Tech : public Employee {
-public: std::string getid() const {
-	if (Validation::validateID(std::to_string(id)))
-		return std::to_string(id);
-	return "";
-}
+public: 
+	/**********************************************************************************		getters		*************************************************************************************/
+
+		std::string getid() const {
+			if (id != 0)
+				return std::to_string(id);
+			return "";
+		}
 
 	  std::string getTechSpecialization() const {
 		  return techSpecialization;
@@ -23,17 +26,27 @@ public: std::string getid() const {
 	  std::string getCurrentProject() const {
 		  return currentProject;
 	  }
-	  static std::string getTableName() {
-		  return "Tech";
-	  }
+	  
 	  std::string getEmpId() const {
 		  if (empId != 0)
 			  return std::to_string(empId);
 		  return "";
 	  }
+	  static std::map <int, getsetmap < Tech >>& getMap() {
+		  return gettersetter;
+	  }
+
+	  static size_t getLastKey() {
+		  return gettersetter.size() - 1;
+	  }
+	  static std::string getTableName() {
+		  return TABLE_NAME;
+	  }
+
+	  /**********************************************************************************		setters		*************************************************************************************/
 
 	  bool setid(std::string str) {
-		  if (Validation::validateID(str)) {
+		  if (Validation::validateID(str) && str[0] == '4') {
 			  try {
 				  id = stoi(str);
 				  return true;
@@ -55,7 +68,7 @@ public: std::string getid() const {
 	  }
 
 	  bool setEmpId(std::string str) {
-		  if (Validation::validateID(str)) {
+		  if (Validation::validateID(str) && str[0] == '1') {
 			  try {
 				  empId = stoi(str);
 				  if (CRUD::isKeyPresent("Employee", "EmpId", str)) {
@@ -79,18 +92,12 @@ public: std::string getid() const {
 		  }
 		  return false;
 	  }
-	  static std::map <int, getsetmap < Tech >>& getMap() {
-		  return gettersetter;
-	  }
-
-	  static size_t getLastKey() {
-		  return gettersetter.size() - 1;
-	  }
-private: TID id;
+	  
+private: TID id{};
 	   EID empId{};
 	   std::string techSpecialization;
 	   std::string currentProject;
-
+	   inline static std::string TABLE_NAME = "TECH";
 	   inline static std::map < int,
 		   getsetmap < Tech >> gettersetter = {
 			   {
