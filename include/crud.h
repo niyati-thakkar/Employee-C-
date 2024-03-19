@@ -113,13 +113,13 @@ namespace CRUD {
 			std::cout << i++ << ". " << strct.name << "\n";
 		}
 		int selection;
-		std::cin >> selection;
-		if (selection <= 0 || selection > T1::getLastKey()) return "";
-		do {
-			if (Utility::getUserInput(e, map[selection])) break;
-		} while (Utility::tryAgain());
-
-		return QueryE::whereQuery(e, map[selection]);
+		if (Utility::setInput(selection)) {
+			if (selection > 0 && selection < T1::getLastKey())
+				if (Utility::getUserInput(e, map[selection]))
+					return QueryE::whereQuery(e, map[selection]);
+		}
+		std::cout << "Invalid Input" << "\n";
+		return "";
 	}
 	template<typename T1, typename T2>
 	std::pair<std::string, std::string> whereHelper(T1& e, std::map<int, getsetmap<T1>>& map1, std::map<int, getsetmap<T2>>& map2) {
@@ -132,18 +132,22 @@ namespace CRUD {
 			std::cout << i << ". " << map1[i - e.T2::getLastKey()].name << "\n";
 		}
 		int selection;
-		std::cin >> selection;
-		if (selection <= 0 || selection >= i) return std::make_pair("", "");
-		if (selection <= e.T2::getLastKey()) {
-			Utility::getUserInput(e, map1[selection]);
-			return std::make_pair(e.T2::getTableName(), QueryE::whereQuery(e, map1[selection]));
+		if (Utility::setInput(selection)) {
+			if (selection > 0 && selection < i) {
+				if (selection <= e.T2::getLastKey()) {
+					Utility::getUserInput(e, map1[selection]);
+					return std::make_pair(e.T2::getTableName(), QueryE::whereQuery(e, map1[selection]));
+				}
+				else {
+					selection -= e.T2::getLastKey();
+					Utility::getUserInput(e, map2[selection]);
+					return std::make_pair(T2::getTableName(), QueryE::whereQuery(e, map2[selection]));
+				}
+			}
 		}
-		else {
-			selection -= e.T2::getLastKey();
-			Utility::getUserInput(e, map2[selection]);
-			return std::make_pair(T2::getTableName(), QueryE::whereQuery(e, map2[selection]));
-		}
-
+		 
+		std::cout << "Invalid Input" << "\n";
+		return std::make_pair("", "");
 	}
 	
 	/**********************************************************************************		insert	*************************************************************************************/
@@ -225,11 +229,9 @@ namespace CRUD {
 		}
 		else {
 			for (int i = 1; i <= lastkey; i++) {
-				std::cout << "1. Select " << map[i].name << "\n";
-				std::cout << "2. Discard " << map[i].name << "\n";
-				char temp;
-				std::cin >> temp;
-				if (temp == '1') {
+				int opt = Utility::takeOption("Select" + map[i].name, "Discard" + map[i].name);
+				if (opt == 0) return;
+				if (opt == 1) {
 					cols.push_back(table + "." + map[i].name);
 				}
 
@@ -242,44 +244,39 @@ namespace CRUD {
 		std::string tableID{ "View by " };
 		tableID += T2::getTableName() + " ID";
 		int option = Utility::takeOption("View Entire Table", "View by EmpID", tableID, "View by Column Value");
-		int takeAll;
-		std::cout << "1. View Selected Columns" << "\n";
-		std::cout << "2. View All Columns" << "\n";
-		std::cin >> takeAll;
+		if (option == 0) return false;
+		std::string wquery;
 		std::vector<std::string> cols;
-		std::string query;
 		auto table1 = T1::getTableName();
 		auto table2 = T2::getTableName();
 		auto& empmap = T1::getMap();
 		auto& map = T2::getMap();
-		viewHelper(takeAll - 1, table1, empmap, T1::getLastKey(), cols);
-		viewHelper(takeAll - 1, table2, map, T2::getLastKey(), cols);
-		query = QueryE::viewQueryC<T1, T2>(e, cols);
 		switch (option) {
-		case 0:
-			return true;
 		case 2:
 		{
-			do {
-				if (Utility::getUserInput(e, T2::getMap()[0])) break;
-				if (!Utility::tryAgain()) return true;
-			} while (true);
-			query = query.substr(0, query.length() - 1) + QueryE::whereQuery(e, T2::getMap()[0]);
-			break;
+				if (Utility::getUserInput(e, T2::getMap()[0])) {
+					wquery = QueryE::whereQuery(e, T2::getMap()[0]);
+					break;
+				} 
 		}
 		case 3: {
-			do {
-				if (Utility::getUserInput(e, T2::getMap()[1])) break;
-				if (Utility::tryAgain()) return true;
-			} while (true);
-			query = query.substr(0, query.length() - 1) + QueryE::whereQuery(e, T2::getMap()[1]);
+				if (Utility::getUserInput(e, T2::getMap()[1])) {
+					wquery = QueryE::whereQuery(e, T2::getMap()[1]);
+				} 
+			
 			break;
 		}
 		case 4: {
-			query = query.substr(0, query.length() - 1) + whereHelper(e, map, empmap).second;
+			wquery = whereHelper(e, map, empmap).second;
 			break;
 		}
 		}
+		int takeAll = Utility::takeOption("View Selected Columns", "View All Columns");
+		if (takeAll == 0) return false;
+		viewHelper(takeAll - 1, table1, empmap, T1::getLastKey(), cols);
+		viewHelper(takeAll - 1, table2, map, T2::getLastKey(), cols);
+		std::string query = QueryE::viewQueryC<T1, T2>(e, cols);
+		if (wquery.length() > 0) query = query.substr(0, query.length() - 1) + wquery;
 		Database db;
 		std::cout << query << "\n";
 		std::cout << db.selectQueryD(query) << "\n";
@@ -293,28 +290,31 @@ namespace CRUD {
 		tableID += T1::getTableName() + " ID";
 		int option = Utility::takeOption("View Entire Table", tableID, "View by Column value");
 		if (option == 0) return false;
-		int takeAll = Utility::takeOption("View Selected Columns", "View All Columns");
-		if (takeAll == 0) return false;
 		std::vector<std::string> cols;
-		std::string query;
+		std::string wquery;
 		auto table1 = T1::getTableName();
 		auto& map = T1::getMap();
-		viewHelper(takeAll - 1, table1, map, T1::getLastKey(), cols);
-		query = QueryE::viewQuery(e, cols);
+		
 		switch (option) {
 		case 2:
 		{
-			do {
-				if (Utility::getUserInput(e, T1::getMap()[1])) break;
-			} while (Utility::tryAgain());
-			query = query.substr(0, query.length() - 1) + QueryE::whereQuery(e, T1::getMap()[1]);
+			if (Utility::getUserInput(e, T1::getMap()[1])) {
+				wquery = QueryE::whereQuery(e, T1::getMap()[1]);
+			}
 			break;
 		}
 		case 3: {
-			query = query.substr(0, query.length() - 1) + whereHelper(e);
+			wquery = whereHelper(e);
 			break;
 		}
 		}
+
+		int takeAll = Utility::takeOption("View Selected Columns", "View All Columns");
+		if (takeAll == 0) return false;
+		viewHelper(takeAll - 1, table1, map, T1::getLastKey(), cols);
+		std::string query = QueryE::viewQuery(e, cols);
+		if (wquery.length() > 0) query = query.substr(0, query.length() - 1) + wquery;
+
 		Database db;
 		std::cout << query << "\n";
 		std::cout << db.selectQueryD(query) << "\n";
