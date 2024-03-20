@@ -28,8 +28,8 @@ namespace QueryE {
 	}
 
 	template<typename T1, typename T2 = T1>
-	std::string whereQuery(T1& e, getsetmap<T2> map) {
-		std::string table = T2::getTableName();
+	std::string whereQuery(T2& e, getsetmap<T1> map) {
+		std::string table = T1::getTableName();
 
 		std::string query = std::string{ " WHERE " } + table + "." + map.name + " = '" + (e.*map.getter)() + "';";
 		return query;
@@ -48,8 +48,8 @@ namespace QueryE {
 		return query;
 	}
 
-	template<typename T1>
-	std::string updateQuery(T1& e, std::vector<int> cols) {
+	template<typename T1, typename T2>
+	std::string updateQuery(T2& e, std::vector<int> cols) {
 		auto& map = T1::getMap();
 		std::string query = "UPDATE " + T1::getTableName() + " SET ";
 		for (auto& id : cols) {
@@ -100,7 +100,7 @@ namespace CRUD {
 
 	}
 
-	/**********************************************************************************		miscelaneous	*************************************************************************************/
+	/*********************************************************************		where	*************************************************************************************/
 
 
 	
@@ -109,48 +109,46 @@ namespace CRUD {
 	std::string whereHelper(T1& e) {
 		auto& map = T1::getMap();
 		int i = 1;
-		for (auto& [id, strct] : map) {
-			std::cout << i++ << ". " << strct.name << "\n";
+		for (; i + 1 <= T1::getLastKey(); i++) {
+			std::cout << i << ". " << map[i + 1].name << "\n";
 		}
 		int selection;
 		if (Utility::setInput(selection)) {
 			if (selection > 0 && selection < T1::getLastKey())
-				if (Utility::getUserInput(e, map[selection]))
-					return QueryE::whereQuery(e, map[selection]);
+				if (Utility::getUserInput(e, map[selection+1]))
+					return QueryE::whereQuery(e, map[selection+1]);
 		}
 		std::cout << "Invalid Input" << "\n";
 		return "";
 	}
 	template<typename T1, typename T2>
-	std::pair<std::string, std::string> whereHelper(T1& e, std::map<int, getsetmap<T1>>& map1, std::map<int, getsetmap<T2>>& map2) {
-		int i = 2;
-		for (; i <= e.T2::getLastKey(); i++) {
-			std::cout << i << ". " << map2[i].name << "\n";
+	std::pair<std::string, std::string> whereHelper(T2& e, std::map<int, getsetmap<T1>>& map1, std::map<int, getsetmap<T2>>& map2) {
+		int i = 1;
+		for (; i+1 <= T1::getLastKey(); i++) {
+			std::cout << i << ". " << map1[i+1].name << "\n";
 		}
-		i++;
-		for (; i - e.T2::getLastKey() <= e.T1::getLastKey(); i++) {
-			std::cout << i << ". " << map1[i - e.T2::getLastKey()].name << "\n";
+		for (; i - T1::getLastKey() + 1 <= T2::getLastKey(); i++) {
+			std::cout << i << ". " << map2[i - T1::getLastKey() + 1].name << "\n";
 		}
 		int selection;
 		if (Utility::setInput(selection)) {
 			if (selection > 0 && selection < i) {
-				if (selection <= e.T2::getLastKey()) {
-					Utility::getUserInput(e, map1[selection]);
-					return std::make_pair(e.T2::getTableName(), QueryE::whereQuery(e, map1[selection]));
+				if (selection < T1::getLastKey()) {
+					if(Utility::getUserInput(e, map1[selection+1]))
+						return std::make_pair(T1::getTableName(), QueryE::whereQuery(e, map1[selection+1]));
 				}
 				else {
-					selection -= e.T2::getLastKey();
-					Utility::getUserInput(e, map2[selection]);
-					return std::make_pair(T2::getTableName(), QueryE::whereQuery(e, map2[selection]));
+					selection -= T1::getLastKey();
+					if(Utility::getUserInput(e, map2[selection+1]))
+						return std::make_pair(T2::getTableName(), QueryE::whereQuery(e, map2[selection+1]));
 				}
 			}
 		}
 		 
-		std::cout << "Invalid Input" << "\n";
 		return std::make_pair("", "");
 	}
 	
-	/**********************************************************************************		insert	*************************************************************************************/
+	/****************************************************************		insert		*************************************************************************************/
 
 	template<typename T1, typename T2 = T1>
 	bool insertHelper(T1& e, std::map<int, getsetmap<T2>>& map) {
@@ -166,14 +164,19 @@ namespace CRUD {
 			else {
 				std::cout << "Enter " << map[i].name << isOpt << "\n";
 				std::string temp;
-				Utility::setInput(temp);
-				if (temp[0] == '#' || !(e.*map[i].setter)(temp)) {
+				
+				if (Utility::setInput(temp)) {
+					if (temp[0] == '#' || !(e.*map[i].setter)(temp)) {
+						std::cout << "Optional Field is left blank!" << "\n";
+					}
+				}
+				else {
 					std::cout << "Optional Field is left blank!" << "\n";
 				}
 			}
 		}
 
-		return true;
+		
 
 	}
 
@@ -182,23 +185,31 @@ namespace CRUD {
 		auto& empmap = T1::getMap();
 		Database db;
 		if (insertHelper(e, empmap)) {
-			db.executeQueryD(QueryE::insertQuery<T1>(e));
-			(e.*T2::getMap()[0].setter)(std::to_string(db.lastInsertedValue()));
-			auto& map = T2::getMap();
-			if (insertHelper(e, map)) {
-				db.executeQueryD(QueryE::insertQuery(e));
-				e.getAddress().setEmpId(e.getEmpId());
-				if (!insertHelper(e.getAddress(), e.getAddress().getMap())) {
-					std::cout << "Address field is left optional!" << "\n";
+			if (db.executeQueryD(QueryE::insertQuery<T1>(e))) {
+				(e.*T2::getMap()[0].setter)(std::to_string(db.lastInsertedValue()));
+				auto& map = T2::getMap();
+				if (insertHelper(e, map)) {
+					if (db.executeQueryD(QueryE::insertQuery(e))) {
+						e.getAddress().setEmpId(e.getEmpId());
+						if (!insertHelper(e.getAddress(), e.getAddress().getMap())) {
+							std::cout << "Address field is left optional!" << "\n";
+						}
+						db.executeQueryD(QueryE::insertQuery(e.getAddress()));
+					}
 				}
-				db.executeQueryD(QueryE::insertQuery(e.getAddress()));
+				else {
+					std::string query = QueryE::removeQuery(T1::getTableName()) + QueryE::whereQuery(e, T2::getMap()[0]);
+					if (db.executeQueryD(query)) {
+						clear(e);
+						return false;
+					}
+					else {
+						exit(0);
+					}
+					
+				}
 			}
-			else {
-				std::string query = QueryE::removeQuery(T1::getTableName()) + QueryE::whereQuery(e, T2::getMap()[0]);
-				if (db.executeQueryD(query));
-				clear(e);
-				return false;
-			}
+			
 		}
 		return true;
 	}
@@ -217,7 +228,7 @@ namespace CRUD {
 
 
 
-	/**********************************************************************************		view	*************************************************************************************/
+	/*****************************************************************		view	*************************************************************************************/
 
 
 	template<typename T1>
@@ -229,7 +240,7 @@ namespace CRUD {
 		}
 		else {
 			for (int i = 1; i <= lastkey; i++) {
-				int opt = Utility::takeOption("Select" + map[i].name, "Discard" + map[i].name);
+				int opt = Utility::takeOption(false, "Select" + map[i].name, "Discard" + map[i].name);
 				if (opt == 0) return;
 				if (opt == 1) {
 					cols.push_back(table + "." + map[i].name);
@@ -239,11 +250,9 @@ namespace CRUD {
 		}
 	}
 
-	template<typename T1, typename T2 = T1>
+	template<typename T1, typename T2>
 	bool viewC(T2& e) {
-		std::string tableID{ "View by " };
-		tableID += T2::getTableName() + " ID";
-		int option = Utility::takeOption("View Entire Table", "View by EmpID", tableID, "View by Column Value");
+		int option = Utility::takeOption(true, "View Entire Table", "View by EmpID", std::string{ "View by " } + T2::getTableName() + " ID", "View by Column Value");
 		if (option == 0) return false;
 		std::string wquery;
 		std::vector<std::string> cols;
@@ -258,29 +267,36 @@ namespace CRUD {
 					wquery = QueryE::whereQuery(e, T2::getMap()[0]);
 					break;
 				} 
+				return false;
 		}
 		case 3: {
 				if (Utility::getUserInput(e, T2::getMap()[1])) {
 					wquery = QueryE::whereQuery(e, T2::getMap()[1]);
+					break;
 				} 
+				return false;
 			
-			break;
 		}
 		case 4: {
-			wquery = whereHelper(e, map, empmap).second;
+			wquery = whereHelper<T1, T2>(e, empmap, map).second;
+			if (wquery.length() == 0) return false;
 			break;
 		}
 		}
-		int takeAll = Utility::takeOption("View Selected Columns", "View All Columns");
+		int takeAll = Utility::takeOption(true, "View Selected Columns", "View All Columns");
 		if (takeAll == 0) return false;
 		viewHelper(takeAll - 1, table1, empmap, T1::getLastKey(), cols);
 		viewHelper(takeAll - 1, table2, map, T2::getLastKey(), cols);
+		if (cols.size() == 0) {
+			std::cout << "No columns selected!" << "\n";
+			return false;
+		}
 		std::string query = QueryE::viewQueryC<T1, T2>(e, cols);
-		if (wquery.length() > 0) query = query.substr(0, query.length() - 1) + wquery;
+		if (option != 1) query = query.substr(0, query.length() - 1) + wquery;
 		Database db;
-		std::cout << query << "\n";
-		std::cout << db.selectQueryD(query) << "\n";
-		return true;
+		if (db.selectQueryD(query))
+			return true;
+		return false;
 	}
 
 
@@ -288,7 +304,7 @@ namespace CRUD {
 	bool view(T1& e) {
 		std::string tableID{ "View by " };
 		tableID += T1::getTableName() + " ID";
-		int option = Utility::takeOption("View Entire Table", tableID, "View by Column value");
+		int option = Utility::takeOption(true, "View Entire Table", tableID, "View by Column value");
 		if (option == 0) return false;
 		std::vector<std::string> cols;
 		std::string wquery;
@@ -309,35 +325,38 @@ namespace CRUD {
 		}
 		}
 
-		int takeAll = Utility::takeOption("View Selected Columns", "View All Columns");
+		int takeAll = Utility::takeOption(false, "View Selected Columns", "View All Columns");
 		if (takeAll == 0) return false;
 		viewHelper(takeAll - 1, table1, map, T1::getLastKey(), cols);
+		if (cols.size() == 0) {
+			std::cout << "No columns selected!" << "\n";
+			return false;
+		}
 		std::string query = QueryE::viewQuery(e, cols);
 		if (wquery.length() > 0) query = query.substr(0, query.length() - 1) + wquery;
 
 		Database db;
 		std::cout << query << "\n";
-		std::cout << db.selectQueryD(query) << "\n";
-		return true;
+		if (db.selectQueryD(query))
+			return true;
+		return false;
 	}
 
 
 	/**********************************************************************************		update		*************************************************************************************/
 
-	template<typename T1, typename T2>
-	bool updateHelper(T1& e, std::map<int, getsetmap<T2>> map, std::vector<int>& indices) {
-		for (auto i = 2; i <= T2::getLastKey(); i++) {
-			int input = Utility::takeOption(("Update " + map[i].name), ("Discard " + map[i].name));
+	template<typename T1, typename T2=T1>
+	bool updateHelper(T2& e, std::map<int, getsetmap<T1>> map, std::vector<int>& indices) {
+		for (auto i = 2; i <= T1::getLastKey(); i++) {
+			int input = Utility::takeOption(false, ("Update " + map[i].name), ("Discard " + map[i].name));
 			if (input == 0) {
 				clear(e);
 				return false;
 			}
 			if (input == 1) {
-				do {
-					if (Utility::getUserInput(e, map[i])) {
-						indices.push_back(i);
-					}
-				} while (Utility::tryAgain());
+				if (Utility::getUserInput(e, map[i])) {
+					indices.push_back(i);
+				}
 			}
 		}
 		return true;
@@ -345,92 +364,111 @@ namespace CRUD {
 
 	template<typename T1, typename T2>
 	bool updateC(T2& e) {
-		int option = Utility::takeOption("Update by EmpID", (std::string{ "Update by " } + e.getTableName() + " ID"));
+		int option = Utility::takeOption(true, "Update by EmpID", (std::string{ "Update by " } + T2::getTableName() + " ID"));
 		std::string wherequery1, wherequery2;
 		if (option == 0) return true;
 		if (option == 1) {
-			do {
-				if (Utility::getUserInput(e, T2::getMap()[0])) {
-					if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[0].name, (e.*T2::getMap()[0].getter)())) {
-						wherequery1 = QueryE::whereQuery(e, T2::getMap()[0]);
-						(e.*T1::getMap()[1].setter)((e.*T2::getMap()[0].getter)());
-						wherequery2 = QueryE::whereQuery(e, T1::getMap()[1]);
-						break;
-					}
+			if (Utility::getUserInput(e, T2::getMap()[0])) {
+				if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[0].name, (e.*T2::getMap()[0].getter)())) {
+					wherequery2 = QueryE::whereQuery(e, T2::getMap()[0]);
+					(e.*T1::getMap()[1].setter)((e.*T2::getMap()[0].getter)());
+					wherequery1 = QueryE::whereQuery(e, T1::getMap()[1]);
 				}
-			} while (Utility::tryAgain());
+
+				else {
+					std::cout << "Value doesn't exists!" << "\n";
+					return false;
+				}
+			}
+			else return false;
+				
 		}
 		else {
-			do {
-				if (Utility::getUserInput(e, T2::getMap()[1])) {
-					if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[1].name, (e.*T2::getMap()[1].getter)())) {
-						wherequery1 = QueryE::whereQuery(e, T2::getMap()[1]);
-						(e.*T1::getMap()[1].setter)(db.getColValue(T2::getTableName(), T2::getMap()[1].name, (e.*T2::getMap()[1].getter)(), T2::getMap()[0].name));
-						wherequery2 = QueryE::whereQuery(e, T1::getMap()[1]);
-						break;
+			if (Utility::getUserInput(e, T2::getMap()[1])) {
+				if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[1].name, (e.*T2::getMap()[1].getter)())) {
+					wherequery2 = QueryE::whereQuery(e, T2::getMap()[1]);
+					if (auto temp = db.getColValue(T2::getTableName(), T2::getMap()[1].name, (e.*T2::getMap()[1].getter)(), T2::getMap()[0].name); (e.*T1::getMap()[1].setter)(temp)) {
+						wherequery1 = QueryE::whereQuery(e, T1::getMap()[1]);
 					}
+					else return false;
 				}
-			} while (Utility::tryAgain());
+				else {
+					std::cout << "Value doesn't exists!" << "\n";
+					return false;
+				}
+			}
+			else return false;
 		}
 		std::vector<int> indices1;
 		updateHelper(e, T1::getMap(), indices1);
-		std::string query1 = QueryE::updateQuery(e, indices1) + wherequery1;
-
 		Database db;
-		if (!db.executeQueryD((query1))) return false;
-
-
+		if (indices1.size() != 0) {
+			std::string query1 = QueryE::updateQuery<T1, T2>(e, indices1) + wherequery1;
+			std::cout << query1 << "\n";
+			std::cout << wherequery1 << "\n";
+			std::cout << wherequery2 << "\n";
+			if (!db.executeQueryD((query1))) return false;
+		}
+	
 		std::vector<int> indices2;
 		updateHelper(e, T2::getMap(), indices2);
-		std::string query2 = QueryE::updateQuery(e, indices2) + wherequery2;
-
-		db.executeQueryD((query2));
-		return true;
+		if (indices2.size() != 0) {
+			std::string query2 = QueryE::updateQuery<T2, T2>(e, indices2) + wherequery2;
+			if(db.executeQueryD((query2)))
+				return true;
+		}
+		return false;
+		
 	}
 
 	template<typename T1>
 	bool update(T1& e) {
-		int option = Utility::takeOption("Update by ID");
+		int option = Utility::takeOption(true, "Update by ID");
 		if (option == 0) return true;
 		std::string query;
-		do {
-			if (Utility::getUserInput(e, e.getMap()[1])) {
-				if (Database db; db.valueExistsInTable(e.getTableName(), e.getMap()[1].name, (e.*e.getMap()[1].getter)())) {
-					query = QueryE::whereQuery(e, e.getMap()[1]);
-					break;
-				}
+		if (Utility::getUserInput(e, e.getMap()[1])) {
+			if (Database db; db.valueExistsInTable(e.getTableName(), e.getMap()[1].name, (e.*e.getMap()[1].getter)())) {
+				query = QueryE::whereQuery(e, e.getMap()[1]);
 			}
-		} while (Utility::tryAgain());
+			else {
+				std::cout << "Value doesn't exists" << "\n";
+				return false;
+			}
+				
+		}
+		else return false;
 
 		std::vector<int> indices;
 		updateHelper(e, T1::getMap(), indices);
-		query = QueryE::updateQuery(e, indices) + query;
-
+		query = QueryE::updateQuery<T1, T1>(e, indices) + query;
+		std::cout << query << "\n";
 		Database db;
 		db.executeQueryD(query);
 		return true;
 	}
 
 
-	/**********************************************************************************		remove	*************************************************************************************/
+	/**********************************************************************************		 remove		*************************************************************************************/
 
 	template<typename T1>
 	bool remove(T1& e) {
-		int option = Utility::takeOption("Delete by ID", "Delete by column value");
+		int option = Utility::takeOption(true, "Delete by ID", "Delete by column value");
 		if (option == 0) return true;
 		std::string query{ QueryE::removeQuery(T1::getTableName()) };
 		if (option == 1) {
-			do {
-				if (Utility::getUserInput(e, T1::getMap()[1])) {
-					if (Database db; db.valueExistsInTable(T1::getTableName(), T1::getMap()[1].name, (e.*T1::getMap()[1].getter)())) {
-						query += QueryE::whereQuery(e, T1::getMap()[0]);
-						break;
-					}
+			if (Utility::getUserInput(e, T1::getMap()[1])) {
+				if (Database db; db.valueExistsInTable(T1::getTableName(), T1::getMap()[1].name, (e.*T1::getMap()[1].getter)())) {
+					query += QueryE::whereQuery<T1, T1>(e, T1::getMap()[1]);
 				}
-			} while (Utility::tryAgain());
+				else {
+					std::cout << "Value doesn't exists" << "\n";
+					return false;
+				}
+			}
+			else return false;
 		}
 		else {
-			query += whereHelper(e);
+			query = query + whereHelper(e);
 		}
 		Database db;
 		db.executeQueryD((query));
@@ -438,33 +476,39 @@ namespace CRUD {
 	}
 	template<typename T1, typename T2>
 	bool removeC(T2& e) {
-		int option = Utility::takeOption("Delete by EmpID", (std::string{ "Delete by " } + T2::getTableName() + " ID"), "Delete by column value");
+		int option = Utility::takeOption(true, "Delete by EmpID", (std::string{ "Delete by " } + T2::getTableName() + " ID"), "Delete by column value");
 		if (option == 0) return true;
 		std::string query;
-		std::string tablename;
+		std::string tablename = T2::getTableName();
 		switch (option) {
 		case 1: {
-			do {
-				if (Utility::getUserInput(e, T2::getMap()[0])) {
-					if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[0].name, (e.*T2::getMap()[0].getter)())) {
-						query += QueryE::whereQuery(e, T2::getMap()[0]);
-						break;
-					}
+			if (Utility::getUserInput(e, T2::getMap()[0])) {
+				if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[0].name, (e.*T2::getMap()[0].getter)())) {
+					query = QueryE::whereQuery<T2, T2>(e, T2::getMap()[0]);
 				}
-			} while (Utility::tryAgain());
+				else {
+					std::cout << "Value doesn't exists" << "\n";
+					return false;
+				}
+			}
+			else {
+				return false;
+			}
+			break;
+
 		}
 		case 2: {
-			do {
-				if (Utility::getUserInput(e, T2::getMap()[1])) {
-					if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[1].name, (e.*T2::getMap()[1].getter)())) {
-						query += QueryE::whereQuery(e, T2::getMap()[1]);
-						break;
-					}
+			if (Utility::getUserInput(e, T2::getMap()[1])) {
+				if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[1].name, (e.*T2::getMap()[1].getter)())) {
+					query = QueryE::whereQuery(e, T2::getMap()[1]);
+					break;
 				}
-			} while (Utility::tryAgain());
+			}
+			break;
+
 		}
 		case 3: {
-			auto temp = whereHelper(e, T2::getMap(), T1::getMap());
+			auto temp = whereHelper(e, T1::getMap(), T2::getMap());
 			tablename = temp.first;
 			query = temp.second;
 

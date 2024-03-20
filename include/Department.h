@@ -94,7 +94,7 @@ private:
 	std::string deptName;
 	MID deptManagerId{};
 	std::string description;
-	inline static std::string TABLE_NAME = "Department";
+	inline static std::string TABLE_NAME = "DEPARTMENT";
 	inline static std::map<int, getsetmap<Department>> gettersetter = {
 		{1, getsetmap<Department>{"ID",& setid,& getid, false }},
 		{2, getsetmap<Department>{"DeptName",& setDeptName,& getDeptName, false}},

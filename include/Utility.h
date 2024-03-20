@@ -37,13 +37,16 @@ namespace Validation {
 		return str.length() == 6;
 	}
 	bool validateContact(std::string str) {
-		return std::regex_match(str, std::regex("\\(?\\d{3}[-\\) ]+\\d{3}[- ]?\\d{4}"));
+		return str.length() > 0 && std::regex_match(str, std::regex("\\(?\\d{3}[-\\) ]+\\d{3}[- ]?\\d{4}"));
 	}
 	bool validateEmail(std::string str) {
-		return std::regex_match(str, std::regex(R"([_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4}))"));
+		return str.length() > 0 && std::regex_match(str, std::regex(R"([_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4}))"));
 	}
 	bool validateDate(std::string str) {
-		return std::regex_match(str, std::regex(R"(^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$)"));
+		return str.length() > 0 && std::regex_match(str, std::regex(R"(^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$)"));
+	}
+	bool validateAddr(std::string str) {
+		return str.length() > 0 && std::regex_match(str, std::regex("^[a-zA-Z0-9 ,.-]*$"));
 	}
 
 };
@@ -103,14 +106,14 @@ namespace Utility {
 		return false;
 	}
 	template < typename...Args >
-	[[nodiscard]] int takeOption(Args...args) {
-		std::cout << Utility::backMessage << "\n";
+	[[nodiscard]] int takeOption(bool extra, Args...args) {
+		if(extra) std::cout << Utility::backMessage << "\n";
 		int i = 1;
 		((std::cout << i++ << ". " << std::forward < Args >(args) << " \n"), ...);
-		std::cout << Utility::exitMessage << "\n";
+		if (extra) std::cout << Utility::exitMessage << "\n";
 		int option = 0;
 		if (setInput(option)) {
-			if (option == 100) {
+			if (extra && option == 100) {
 				exit(0);
 			}
 			if (option < 0 || option >= i) {

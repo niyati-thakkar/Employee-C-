@@ -19,7 +19,7 @@ namespace Menu {
 	void employeeMenu() {
 		bool whileFlag = true;
 		do {
-			int option = Utility::takeOption("Insert Employee(s)", "View Employee(s)", "Update Employee(s)", "Delete Employee(s)");
+			int option = Utility::takeOption(true, "Insert Employee(s)", "View Employee(s)", "Update Employee(s)", "Delete Employee(s)");
 			if (option == 0) return;
 			Employee e;
 			switch (option) {
@@ -45,7 +45,7 @@ namespace Menu {
 	void departmentMenu() {
 		bool whileFlag = true;
 		do {
-			int option = Utility::takeOption("Insert Department", "View Department(s)", "Update Department(s)", "Delete From Department(s)");
+			int option = Utility::takeOption(true, "Insert Department", "View Department(s)", "Update Department(s)", "Delete From Department(s)");
 			if (option == 0) return;
 			Department e;
 			switch (option) {
@@ -71,7 +71,7 @@ namespace Menu {
 	void techMenu() {
 		bool whileFlag = true;
 		do {
-			int option = Utility::takeOption("Insert Engineer(s)", "View Engineer(s)", "Update Engineer(s)", "Delete Engineer(s)");
+			int option = Utility::takeOption(true, "Insert Engineer(s)", "View Engineer(s)", "Update Engineer(s)", "Delete Engineer(s)");
 			if (option == 0) return;
 			Tech t;
 			switch (option) {
@@ -97,7 +97,7 @@ namespace Menu {
 	void managementMenu() {
 		bool whileFlag = true;
 		do {
-			int option = Utility::takeOption("Insert Manager(s)", "View Manager(s)", "Update Manager(s)", "Delete Manager(s)");
+			int option = Utility::takeOption(true, "Insert Manager(s)", "View Manager(s)", "Update Manager(s)", "Delete Manager(s)");
 			if (option == 0) return;
 			Employee e;
 			Management m;
@@ -124,7 +124,7 @@ namespace Menu {
 	void HRMenu() {
 		bool whileFlag = true;
 		do {
-			int option = Utility::takeOption("Insert HR(s)", "View HR(s)", "Update HR(s)", "Delete HR(s)");
+			int option = Utility::takeOption(true, "Insert HR(s)", "View HR(s)", "Update HR(s)", "Delete HR(s)");
 			if (option == 0) return;
 			Employee e;
 			HR h;
@@ -151,7 +151,7 @@ namespace Menu {
 	void mainMenu() {
 		bool whileFlag = true;
 		do {
-			int option = Utility::takeOption("Create New Table", "Employees", "Departments", "Management", "Tech", "HR and Finance");
+			int option = Utility::takeOption(true, "Create New Table", "Employees", "Departments", "Management", "Tech", "HR and Finance");
 			if (option == 0) return;
 			switch (option) {
 			case 0: {

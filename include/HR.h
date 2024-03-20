@@ -8,7 +8,7 @@
 
 class HR : public Employee {
 public:
-	/**********************************************************************************		getters	*************************************************************************************/
+	/**********************************************************************************		getters		*************************************************************************************/
 
 	std::string getid() const {
 		if (id != 0)
@@ -105,7 +105,7 @@ private:
 	inline static std::map<int, getsetmap<HR>> gettersetter = {
 		{0, getsetmap<HR>{"EmpId",& setEmpId,& getEmpId, false }},
 		{1, getsetmap<HR>{"ID",& setid,& getid, false }},
-		{2, getsetmap<HR>{"ProficientLangugae",& setProficientLangugae,& getProficientLangugae, false}},
+		{2, getsetmap<HR>{"ProficientLanguage",& setProficientLangugae,& getProficientLangugae, false}},
 		{3, getsetmap<HR>{"RecruitingExperience",& setRecruitingExperience,& getRecruitingExperience, true}}
 	};
 };

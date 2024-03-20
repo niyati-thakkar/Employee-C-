@@ -54,7 +54,7 @@ public:
 		return false;
 	}
 	bool setLocation(std::string loc) {
-		if (Validation::validateString(loc)) {
+		if (Validation::validateAddr(loc)) {
 			location = loc;
 			return true;
 		}
@@ -192,7 +192,7 @@ public:
 		return gettersetter.size();
 	}
 
-	/**********************************************************************************		setters	*************************************************************************************/
+	/**********************************************************************************		setters		*************************************************************************************/
 
 
 	bool setid(std::string i) {
@@ -236,7 +236,8 @@ public:
 		return false;
 	}
 
-	bool setAddress(std::string) {
+	bool setAddress(Address a) {
+		empAddr = a;
 		return true;
 	}
 
@@ -254,10 +255,9 @@ public:
 			return true;
 		}
 		if(Validation::validateEmail(str)) {
-			contact = str;
+			email = str;
 			return true;
 		}
-		return false;
 		return false;
 	}
 
@@ -280,6 +280,7 @@ public:
 			try {
 				deptId = stoi(str);
 				if (CRUD::isKeyPresent("Department","ID", str)) {
+
 					return true;
 				}
 				else {
@@ -299,7 +300,6 @@ public:
 		if (Validation::validateID(str) && str[0] == '1') {
 			try {
 				reportingManagerId = stoi(str);
-				std::cout << reportingManagerId << "\n";
 				if (CRUD::isKeyPresent("Employee", "EmpId", str)) {
 					return true;
 				}
@@ -330,7 +330,7 @@ private:
 	Address empAddr;
 	DID deptId{};
 	EID reportingManagerId{};
-	static inline std::string TABLE_NAME = "Employee";
+	static inline std::string TABLE_NAME = "EMPLOYEE";
 	inline static std::map<int, getsetmap<Employee>> gettersetter = {
 		{1, getsetmap<Employee>{"EmpId",& setid,& getid, false }},
 		{2, getsetmap<Employee>{"FirstName",& setFname,& getFname, false}},

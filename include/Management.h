@@ -33,7 +33,6 @@ public:
 	static bool isKeyPresent(std::string table, std::string col, std::string val) {
 		Database db;
 		return db.valueExistsInTable(table, col, val);
-
 	}
 
 	bool deleteEmp(std::string id) {
@@ -48,7 +47,7 @@ public:
 		return gettersetter.size() - 1;
 	}
 
-	/**********************************************************************************		setters	*************************************************************************************/
+	/**********************************************************************************		setters		*************************************************************************************/
 
 
 	bool setid(std::string str) {

@@ -27,12 +27,15 @@ public:
 		}
 		else {
 			logger.Info("Database opened successfully");
+			executeQueryD("PRAGMA case_sensitive_like = OFF;");
+			executeQueryD("PRAGMA foreign_keys = ON;");
 		}
 	}
 	~Database() {
 		sqlite3_close(db);
 	}
 	bool executeQueryD(std::string query) {
+		std::cout << query << "\n";
 		const char* sqlq = query.c_str();
 		rc = sqlite3_exec(db, sqlq, callback, 0, &zErrMsg);
 		if (rc != SQLITE_OK) {
@@ -48,6 +51,7 @@ public:
 		return false;
 	}
 	bool selectQueryD(std::string query) {
+		std::cout << query << "\n";
 		/* Create SQL statement */
 		/* Create SQL statement */
 		const char* sql = query.c_str();
@@ -64,6 +68,7 @@ public:
 			return true;
 		}
 		logger.Error("Query failed!");
+		
 		return false;
 
 	}
@@ -113,14 +118,7 @@ public:
 		sqlite3_stmt* stmt;
 		std::string result;
 
-		// Open the database
-		rc = sqlite3_open("database.db", &db);
-		if (rc) {
-			std::cerr << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
-			sqlite3_close(db);
-			return "";
-		}
-
+		
 		// Prepare SQL statement
 		std::string sql = "SELECT " + columnToFetch + " FROM " + tableName + " WHERE " + columnName + " = ?;";
 		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
