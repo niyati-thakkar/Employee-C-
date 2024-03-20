@@ -134,6 +134,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Test.cpp" />
+    <ClInclude Include="..\bprinter\include\bprinter\table_printer.h" />
     <ClInclude Include="include\Menu.h" />
     <ClInclude Include="include\Test.h" />
     <ClInclude Include="include\Utility.h" />

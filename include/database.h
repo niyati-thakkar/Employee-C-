@@ -11,14 +11,60 @@ class Database {
 	Lognspace::Log logger{ Lognspace::Log::Level::LevelInfo, "EmployeeDatabase.txt" };
 
 public:
+#include <iostream>
+#include <string>
+#include <iomanip>
+
 	static int callback(void* NotUsed, int argc, char** argv, char** azColName) {
-		int i;
-		for (i = 0; i < argc; i++) {
-			printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+		// Calculate the maximum width of column names and values
+		int maxColumnNameWidth = 30;
+		int maxColumnValueWidth = 60;
+		
+
+		int totalWidth = maxColumnNameWidth + maxColumnValueWidth + 5;
+		// Print top border
+		std::cout << "+";
+
+		// Print the separator line using a loop
+		for (int i = 0; i < totalWidth; i++) {
+			std::cout << "-";
 		}
-		printf("\n");
+
+		// Print a space and the second '+'
+		std::cout << "+" << std::endl;
+		std::cout << std::setfill(' ');
+
+		// Print table
+		for (int i = 0; i < argc; ++i) {
+			std::string temp = argv[i];
+			if (temp.length() > 50) {
+				temp = temp.substr(0, 50);
+				temp = temp + "...";
+			}
+			std::cout << "| " << std::left << std::setw(maxColumnNameWidth) << azColName[i] << " | ";
+			std::cout << std::setw(maxColumnValueWidth) << (temp.length() > 0 ? temp : "NULL") << " |" << std::endl;
+		}
+
+		// Print bottom border
+		// Calculate total width (including padding)
+		 // 4 for two '+' and two spaces
+
+		// Print the first '+'
+		std::cout << "+";
+
+		// Print the separator line using a loop
+		for (int i = 0; i < totalWidth; i++) {
+			std::cout << "-";
+		}
+
+		// Print a space and the second '+'
+		std::cout << "+" << std::endl;
+
+		std::cout << std::endl; // Empty line between rows
+
 		return 0;
 	}
+
 	Database() {
 		rc = sqlite3_open("Employee.db", &db);
 		if (rc) {

@@ -316,12 +316,16 @@ namespace CRUD {
 		{
 			if (Utility::getUserInput(e, T1::getMap()[1])) {
 				wquery = QueryE::whereQuery(e, T1::getMap()[1]);
+				break;
 			}
-			break;
+			return false;
+			
 		}
 		case 3: {
 			wquery = whereHelper(e);
-			break;
+			if (wquery.length())
+				break;
+			else return false;
 		}
 		}
 
