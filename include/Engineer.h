@@ -1,5 +1,5 @@
-#ifndef _TECH_H_
-#define _TECH_H_
+#ifndef _Engineer_H_
+#define _Engineer_H_
 #include<string>
 
 #include "Utility.h"
@@ -9,7 +9,7 @@
 #include<map>
 
 
-class Tech : public Employee {
+class Engineer : public Employee {
 public: 
 	/**********************************************************************************		getters		*************************************************************************************/
 
@@ -19,8 +19,8 @@ public:
 			return "";
 		}
 
-	  std::string getTechSpecialization() const {
-		  return techSpecialization;
+	  std::string getEngineerSpecialization() const {
+		  return EngineerSpecialization;
 	  }
 
 	  std::string getCurrentProject() const {
@@ -32,7 +32,7 @@ public:
 			  return std::to_string(empId);
 		  return "";
 	  }
-	  static std::map <int, getsetmap < Tech >>& getMap() {
+	  static std::map <int, getsetmap < Engineer >>& getMap() {
 		  return gettersetter;
 	  }
 
@@ -59,9 +59,9 @@ public:
 
 	  }
 
-	  bool setTechSpecialization(std::string str) {
+	  bool setEngineerSpecialization(std::string str) {
 		  if (Validation::validateString(str)) {
-			  techSpecialization = str;
+			  EngineerSpecialization = str;
 			  return true;
 		  }
 		  return false;
@@ -95,14 +95,14 @@ public:
 	  
 private: TID id{};
 	   EID empId{};
-	   std::string techSpecialization;
+	   std::string EngineerSpecialization;
 	   std::string currentProject;
-	   inline static std::string TABLE_NAME = "TECH";
+	   inline static std::string TABLE_NAME = "Engineer";
 	   inline static std::map < int,
-		   getsetmap < Tech >> gettersetter = {
+		   getsetmap < Engineer >> gettersetter = {
 			   {
 				   0,
-				   getsetmap < Tech > {
+				   getsetmap < Engineer > {
 					   "EmpId",
 					   & setEmpId,
 					   & getEmpId,
@@ -111,7 +111,7 @@ private: TID id{};
 			   },
 			   {
 				   1,
-				   getsetmap < Tech > {
+				   getsetmap < Engineer > {
 					   "ID",
 					   & setid,
 					   & getid,
@@ -120,16 +120,16 @@ private: TID id{};
 			   },
 			   {
 				   2,
-				   getsetmap < Tech > {
-					   "TechSpecialization",
-					   & setTechSpecialization,
-					   & getTechSpecialization,
+				   getsetmap < Engineer > {
+					   "EngineerSpecialization",
+					   & setEngineerSpecialization,
+					   & getEngineerSpecialization,
 					   false
 				   }
 			   },
 			   {
 				   3,
-				   getsetmap < Tech > {
+				   getsetmap < Engineer > {
 					   "CurrentProject",
 					   & setCurrentProject,
 					   & getCurrentProject,

@@ -8,19 +8,17 @@ class Database {
 	sqlite3* db;
 	char* zErrMsg = 0;
 	int rc;
-	Lognspace::Log logger{ Lognspace::Log::Level::LevelInfo, "EmployeeDatabase.txt" };
 
 public:
-#include <iostream>
-#include <string>
-#include <iomanip>
 
-	static int callback(void* NotUsed, int argc, char** argv, char** azColName) {
+	inline static Lognspace::Log logger{ Lognspace::Log::Level::LevelInfo, "EmployeeDatabase.txt" };
+	static int callback(void* count, int argc, char** argv, char** azColName) {
 		// Calculate the maximum width of column names and values
+		int* cnt = static_cast<int*>(count);
+		*cnt = *cnt + 1;
 		int maxColumnNameWidth = 30;
 		int maxColumnValueWidth = 60;
 		
-
 		int totalWidth = maxColumnNameWidth + maxColumnValueWidth + 5;
 		// Print top border
 		std::cout << "+";
@@ -36,13 +34,9 @@ public:
 
 		// Print table
 		for (int i = 0; i < argc; ++i) {
-			std::string temp = argv[i];
-			if (temp.length() > 50) {
-				temp = temp.substr(0, 50);
-				temp = temp + "...";
-			}
+			
 			std::cout << "| " << std::left << std::setw(maxColumnNameWidth) << azColName[i] << " | ";
-			std::cout << std::setw(maxColumnValueWidth) << (temp.length() > 0 ? temp : "NULL") << " |" << std::endl;
+			std::cout << std::setw(maxColumnValueWidth) << (argv[i] ? argv[i] : "-") << " |" << std::endl;
 		}
 
 		// Print bottom border
@@ -59,8 +53,7 @@ public:
 
 		// Print a space and the second '+'
 		std::cout << "+" << std::endl;
-
-		std::cout << std::endl; // Empty line between rows
+		std::cout << std::setfill(' ');
 
 		return 0;
 	}
@@ -72,50 +65,50 @@ public:
 			return;
 		}
 		else {
-			logger.Info("Database opened successfully");
-			executeQueryD("PRAGMA case_sensitive_like = OFF;");
-			executeQueryD("PRAGMA foreign_keys = ON;");
+			sqlite3_exec(db, "PRAGMA case_sensitive_like = ON;", callback, 0, &zErrMsg);
 		}
 	}
 	~Database() {
 		sqlite3_close(db);
 	}
 	bool executeQueryD(std::string query) {
-		std::cout << query << "\n";
 		const char* sqlq = query.c_str();
 		rc = sqlite3_exec(db, sqlq, callback, 0, &zErrMsg);
-		if (rc != SQLITE_OK) {
-			std::cerr << "SQL error: \n" << zErrMsg;
-			sqlite3_free(zErrMsg);
-		}
-		else {
-			//std::cout << sqlite3_last_insert_rowid(db) << "\n";
-			logger.Info("Query Executed successfully");
-			return true;
-		}
-		logger.Error("Query failed!");
-		return false;
-	}
-	bool selectQueryD(std::string query) {
-		std::cout << query << "\n";
-		/* Create SQL statement */
-		/* Create SQL statement */
-		const char* sql = query.c_str();
-
-		/* Execute SQL statement */
-		rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
-
 		if (rc != SQLITE_OK) {
 			fprintf(stderr, "SQL error: %s\n", zErrMsg);
 			sqlite3_free(zErrMsg);
 		}
 		else {
-			logger.Info("Operation done successfully");
+			//std::cout << sqlite3_last_insert_rowid(db) << "\n";
+			if (sqlite3_changes(db) == 0) {
+				logger.Warn("No records Affected!");
+			}
 			return true;
 		}
-		logger.Error("Query failed!");
-		
 		return false;
+	}
+	bool selectQueryD(std::string query) {
+		/* Create SQL statement */
+		/* Create SQL statement */
+		const char* sql = query.c_str();
+		int count = 0;
+		/* Execute SQL statement */
+		rc = sqlite3_exec(db, sql, callback, &count, &zErrMsg);
+
+		if (rc != SQLITE_OK) {
+			fprintf(stderr, "SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			return false;
+		}
+		else {
+			if (count == 0) {
+				logger.Warn("No Records Found.");
+				return false;
+			}
+			return true;
+		}
+		
+		
 
 	}
 	static int valueExistsCallback(void* exists, int argc, char** argv, char** azColName) {
@@ -203,6 +196,35 @@ public:
 		sqlite3_close(db);
 
 		return result;
+	}
+	bool turnCascadeOn() {
+		rc = sqlite3_exec(db, "PRAGMA foreign_keys = ON;", callback, 0, &zErrMsg);
+		return rc == SQLITE_OK;
+	}
+	bool turnCascadeOff() {
+		rc = sqlite3_exec(db, "PRAGMA foreign_keys = OFF;", callback, 0, &zErrMsg);
+		return rc == SQLITE_OK;
+	}
+	bool getPrimaryKeys(std::string query, std::vector<std::string>& empids) {
+		rc = sqlite3_exec(db, query.c_str(), [](void* data, int argc, char** argv, char** azColName) -> int {
+			std::vector<std::string>* empids = static_cast<std::vector<std::string>*>(data);
+			for (int i = 0; i < argc; i++) {
+				empids->push_back(argv[i]); // Assuming primary key is the first (and only) column in the result
+			}
+			return 0;
+			}, &empids, &zErrMsg);
+
+		if (rc != SQLITE_OK) {
+			fprintf(stderr, "SQL error: %s\n", zErrMsg);
+			sqlite3_free(zErrMsg);
+			sqlite3_close(db);
+			return false;
+		}
+
+		// Close the database connection
+		sqlite3_close(db);
+
+		return true;
 	}
 
 };

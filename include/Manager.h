@@ -1,12 +1,12 @@
-#ifndef _MANAGEMENT_H_
-#define _MANAGEMENT_H_
+#ifndef _Manager_H_
+#define _Manager_H_
 #include<string>
 #include "Utility.h"
 #include "Employee.h"
 #include<map>
 
 
-class Management : public Employee {
+class Manager : public Employee {
 public:
 
 	/**********************************************************************************		getters		*************************************************************************************/
@@ -17,8 +17,8 @@ public:
 		return "";
 	}
 
-	std::string getManagementSpecialization() const {
-		return managementSpecialization;
+	std::string getManagerSpecialization() const {
+		return ManagerSpecialization;
 	}
 	std::string getYearsOfExperience() const {
 		if (yearsOfExperience != 0)
@@ -41,7 +41,7 @@ public:
 		return true;
 	}
 	static std::string getTableName() {
-		return "Management";
+		return "Manager";
 	}
 	static size_t getLastKey() {
 		return gettersetter.size() - 1;
@@ -64,9 +64,9 @@ public:
 
 	}
 
-	bool setManagementSpecialization(std::string str) {
+	bool setManagerSpecialization(std::string str) {
 		if (Validation::validateString(str)) {
-			managementSpecialization = str;
+			ManagerSpecialization = str;
 			return true;
 		}
 		return false;
@@ -102,7 +102,7 @@ public:
 	}
 
 
-	static std::map<int, getsetmap<Management>>& getMap() {
+	static std::map<int, getsetmap<Manager>>& getMap() {
 		return gettersetter;
 	}
 
@@ -110,14 +110,14 @@ public:
 private:
 	MID id{};
 	EID empId{};
-	std::string managementSpecialization;
+	std::string ManagerSpecialization;
 	int yearsOfExperience{};
-	static inline std::string TABLE_NAME = "MANAGEMENT";
-	inline static std::map<int, getsetmap<Management>> gettersetter = {
-		{0, getsetmap<Management>{"EmpId",& setEmpId,& getEmpId, false }},
-		{1, getsetmap<Management>{"ID",& setid,& getid, false }},
-		{2, getsetmap<Management>{"ManagementSpecialization",& setManagementSpecialization,& getManagementSpecialization, false}},
-		{3, getsetmap<Management>{"YearsOfExperience",& setYearsOfExperience,& getYearsOfExperience, true}}
+	static inline std::string TABLE_NAME = "Manager";
+	inline static std::map<int, getsetmap<Manager>> gettersetter = {
+		{0, getsetmap<Manager>{"EmpId",& setEmpId,& getEmpId, false }},
+		{1, getsetmap<Manager>{"ID",& setid,& getid, false }},
+		{2, getsetmap<Manager>{"ManagementSpecialization",& setManagerSpecialization,& getManagerSpecialization, false}},
+		{3, getsetmap<Manager>{"YearsOfExperience",& setYearsOfExperience,& getYearsOfExperience, true}}
 	};
 };
 #endif

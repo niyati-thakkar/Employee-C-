@@ -150,8 +150,8 @@
     <ClInclude Include="include\Department.h" />
     <ClInclude Include="include\Employee.h" />
     <ClInclude Include="include\HR.h" />
-    <ClInclude Include="include\Management.h" />
-    <ClInclude Include="include\Tech.h" />
+    <ClInclude Include="include\Manager.h" />
+    <ClInclude Include="include\Engineer.h" />
     <ClInclude Include="sqlite\sqlite3.h" />
     <ClInclude Include="sqlite\sqlite3ext.h" />
   </ItemGroup>

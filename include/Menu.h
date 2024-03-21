@@ -2,9 +2,9 @@
 #define _MENU_H_
 #include "Employee.h"
 
-#include "Tech.h"
+#include "Engineer.h"
 
-#include "Management.h"
+#include "Manager.h"
 
 #include "HR.h"
 
@@ -68,54 +68,54 @@ namespace Menu {
 			}
 		} while (whileFlag);
 	}
-	void techMenu() {
+	void EngineerMenu() {
 		bool whileFlag = true;
 		do {
 			int option = Utility::takeOption(true, "Insert Engineer(s)", "View Engineer(s)", "Update Engineer(s)", "Delete Engineer(s)");
 			if (option == 0) return;
-			Tech t;
+			Engineer t;
 			switch (option) {
 			case 1: {
-				CRUD::insertC<Employee, Tech>(t);
+				CRUD::insertC<Employee, Engineer>(t);
 				break;
 			}
 			case 2: {
-				CRUD::viewC<Employee, Tech>(t);
+				CRUD::viewC<Employee, Engineer>(t);
 				break;
 			}
 			case 3: {
-				CRUD::updateC<Employee, Tech>(t);
+				CRUD::updateC<Employee, Engineer>(t);
 				break;
 			}
 			case 4: {
-				CRUD::removeC<Employee, Tech>(t);
+				CRUD::removeC<Employee, Engineer>(t);
 				break;
 			}
 			}
 		} while (whileFlag);
 	}
-	void managementMenu() {
+	void ManagerMenu() {
 		bool whileFlag = true;
 		do {
 			int option = Utility::takeOption(true, "Insert Manager(s)", "View Manager(s)", "Update Manager(s)", "Delete Manager(s)");
 			if (option == 0) return;
 			Employee e;
-			Management m;
+			Manager m;
 			switch (option) {
 			case 1: {
-				CRUD::insertC<Employee, Management>(m);
+				CRUD::insertC<Employee, Manager>(m);
 				break;
 			}
 			case 2: {
-				CRUD::viewC<Employee, Management>(m);
+				CRUD::viewC<Employee, Manager>(m);
 				break;
 			}
 			case 3: {
-				CRUD::updateC<Employee, Management>(m);
+				CRUD::updateC<Employee, Manager>(m);
 				break;
 			}
 			case 4: {
-				CRUD::removeC<Employee, Management>(m);
+				CRUD::removeC<Employee, Manager>(m);
 				break;
 			}
 			}
@@ -151,7 +151,7 @@ namespace Menu {
 	void mainMenu() {
 		bool whileFlag = true;
 		do {
-			int option = Utility::takeOption(true, "Create New Table", "Employees", "Departments", "Management", "Tech", "HR and Finance");
+			int option = Utility::takeOption(true, "Create New Table", "Employees", "Departments", "Manager", "Engineer", "HR and Finance");
 			if (option == 0) return;
 			switch (option) {
 			case 0: {
@@ -174,12 +174,12 @@ namespace Menu {
 			}
 
 			case 4: {
-				managementMenu();
+				ManagerMenu();
 				break;
 			}
 
 			case 5: {
-				techMenu();
+				EngineerMenu();
 				break;
 			}
 
