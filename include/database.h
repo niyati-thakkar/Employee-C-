@@ -2,7 +2,7 @@
 #define _DATABASE_H_
 #include<iostream>
 #include<string>
-#include "Log.h"
+#include "LogLibrary/Log.h"
 #include "../sqlite/sqlite3.h"
 class Database {
 	sqlite3* db;
@@ -111,27 +111,15 @@ public:
 		
 
 	}
-	static int valueExistsCallback(void* exists, int argc, char** argv, char** azColName) {
-		int* result = static_cast<int*>(exists);
-		*result = (argc > 0 && argv[0] != nullptr);
-		return 0;
-	}
 
-	bool valueExistsInTable(const std::string& tableName, const std::string& col, const std::string& value) {
-		std::string query = "SELECT 1 FROM " + tableName + " WHERE " + col + " = '" + value + "'; ";
+	int valueExistsInTable(const std::string& tableName, const std::string& col, const std::string& value) {
+		std::string query = "SELECT * FROM " + tableName + " WHERE " + col + " = '" + value + "'; ";
 
-		char* zErrMsg = nullptr;
-		int exists = 0;
-
-		int rc = sqlite3_exec(db, query.c_str(), valueExistsCallback, &exists, &zErrMsg);
-
-		if (rc != SQLITE_OK) {
-			fprintf(stderr, "SQL error: %s\n", zErrMsg);
-			sqlite3_free(zErrMsg);
-			return false; // Consider returning an error indicator or throwing an exception
-		}
-
-		return (exists == 1);
+		const char* sql = query.c_str();
+		int count = 0;
+		/* Execute SQL statement */
+		rc = sqlite3_exec(db, sql, callback, &count, &zErrMsg);
+		return count;
 	}
 
 	int lastInsertedValue() {

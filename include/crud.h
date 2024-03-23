@@ -24,8 +24,13 @@ namespace QueryE {
 		return query;
 	}
 
-	std::string removeQuery(std::string tablename) {
-		return std::string{ "DELETE FROM " } + tablename;
+	std::string removeQuery(std::string tablename, std::string col, std::string id) {
+		return std::string{ "DELETE FROM " } + tablename + " WHERE " + col + " = '" + id + "';";
+
+	}
+	template <typename T1>
+	std::string removeQuery(T1& e) {
+		return std::string{ "DELETE FROM " } + T1::getTableName();
 	}
 
 	template<typename T1, typename T2 = T1>
@@ -86,12 +91,13 @@ namespace QueryE {
 }
 
 namespace CRUD {
-	
-	
-	/**********************************************************************************		miscelaneous	*************************************************************************************/ 
+
+
+	/**********************************************************************************		miscelaneous	*************************************************************************************/
 	std::string isOpt = " (Note - This field is optional. Enter '#' to keep it blank!)";
 	std::string invalid = "Invalid Input!";
 	std::string valuenotexits = "Value doesn't exists!";
+	std::string someerror = "Sorry! Some error occured!";
 	template<typename T1>
 	void clear(T1& e) {
 		e = T1{};
@@ -105,7 +111,7 @@ namespace CRUD {
 	/*********************************************************************		where	*************************************************************************************/
 
 
-	
+
 
 	template<typename T1>
 	std::string whereHelper(T1& e) {
@@ -117,16 +123,16 @@ namespace CRUD {
 		int selection;
 		if (Utility::setInput(selection)) {
 			if (selection > 0 && selection < T1::getLastKey())
-				if (Utility::getUserInput(e, map[selection+1]))
-					return QueryE::whereQuery(e, map[selection+1]);
+				if (Utility::getUserInput(e, map[selection + 1]))
+					return QueryE::whereQuery(e, map[selection + 1]);
 		}
 		return "";
 	}
 	template<typename T1, typename T2>
 	std::pair<std::string, std::string> whereHelper(T2& e, std::map<int, getsetmap<T1>>& map1, std::map<int, getsetmap<T2>>& map2) {
 		int i = 1;
-		for (; i+1 <= T1::getLastKey(); i++) {
-			std::cout << i << ". " << map1[i+1].name << "\n";
+		for (; i + 1 <= T1::getLastKey(); i++) {
+			std::cout << i << ". " << map1[i + 1].name << "\n";
 		}
 		for (; i - T1::getLastKey() + 1 <= T2::getLastKey(); i++) {
 			std::cout << i << ". " << map2[i - T1::getLastKey() + 1].name << "\n";
@@ -135,19 +141,19 @@ namespace CRUD {
 		if (Utility::setInput(selection)) {
 			if (selection > 0 && selection < i) {
 				if (selection < T1::getLastKey()) {
-					if(Utility::getUserInput(e, map1[selection+1]))
-						return std::make_pair(T1::getTableName(), QueryE::whereQuery(e, map1[selection+1]));
+					if (Utility::getUserInput(e, map1[selection + 1]))
+						return std::make_pair(T1::getTableName(), QueryE::whereQuery(e, map1[selection + 1]));
 				}
 				else {
 					selection -= T1::getLastKey();
-					if(Utility::getUserInput(e, map2[selection+1]))
-						return std::make_pair(T2::getTableName(), QueryE::whereQuery(e, map2[selection+1]));
+					if (Utility::getUserInput(e, map2[selection + 1]))
+						return std::make_pair(T2::getTableName(), QueryE::whereQuery(e, map2[selection + 1]));
 				}
 			}
 		}
 		return std::make_pair("", "");
 	}
-	
+
 	/*************************************************		insert		*************************************************************************************/
 
 	template<typename T1, typename T2 = T1>
@@ -163,7 +169,7 @@ namespace CRUD {
 			else {
 				std::cout << "Enter " << map[i].name << isOpt << "\n";
 				std::string temp;
-				
+
 				if (Utility::setInput(temp)) {
 					if (temp[0] == '#' || !(e.*map[i].setter)(temp)) {
 						std::cout << "Optional Field is left blank!" << "\n";
@@ -196,26 +202,27 @@ namespace CRUD {
 						else {
 							Database::logger.Info(table2 + " inserted successfully!");
 						}
-						
+
 						Database::logger.Info(table1 + " inserted successfully!");
 						return true;
 					}
 				}
 				else {
-					std::string query = QueryE::removeQuery(T1::getTableName()) + QueryE::whereQuery(e, T2::getMap()[0]);
+					std::string query = QueryE::removeQuery(e) + QueryE::whereQuery(e, T2::getMap()[0]);
 					if (db.executeQueryD(query)) {
 						clear(e);
 					}
 					else {
 						exit(0);
 					}
-					
+
 				}
 			}
 			Database::logger.Error(table1 + " Insertion Failed!");
-			
+			return false;
+
 		}
-		
+		return false;
 	}
 
 	template<typename T1>
@@ -228,7 +235,7 @@ namespace CRUD {
 				Database::logger.Info(table1 + " inserted successfully!");
 				return true;
 			}
-				
+
 		}
 		Database::logger.Error(table1 + " Insertion Failed!");
 		return false;
@@ -268,21 +275,21 @@ namespace CRUD {
 		switch (option) {
 		case 2:
 		{
-				if (Utility::getUserInput(e, T2::getMap()[0])) {
-					wquery = QueryE::whereQuery(e, T2::getMap()[0]);
-					break;
-				} 
-				Database::logger.Error("Invalid Input");
-				return false;
+			if (Utility::getUserInput(e, T2::getMap()[0])) {
+				wquery = QueryE::whereQuery(e, T2::getMap()[0]);
+				break;
+			}
+			Database::logger.Error("Invalid Input");
+			return false;
 		}
 		case 3: {
-				if (Utility::getUserInput(e, T2::getMap()[1])) {
-					wquery = QueryE::whereQuery(e, T2::getMap()[1]);
-					break;
-				} 
-				Database::logger.Error("Invalid Input");
-				return false;
-			
+			if (Utility::getUserInput(e, T2::getMap()[1])) {
+				wquery = QueryE::whereQuery(e, T2::getMap()[1]);
+				break;
+			}
+			Database::logger.Error("Invalid Input");
+			return false;
+
 		}
 		case 4: {
 			wquery = whereHelper<T1, T2>(e, empmap, map).second;
@@ -308,22 +315,20 @@ namespace CRUD {
 			Database::logger.Info("Successfully Fetched");
 			return true;
 		}
-			
+
 		return false;
 	}
 
 
 	template<typename T1>
 	bool view(T1& e) {
-		std::string tableID{ "View by " };
-		tableID += T1::getTableName() + " ID";
-		int option = Utility::takeOption(true, "View Entire Table", tableID, "View by Column value");
+		int option = Utility::takeOption(true, "View Entire Table", (std::string{ "View by " } + T1::getTableName() + " ID"), "View by Column value");
 		if (option == 0) return false;
 		std::vector<std::string> cols;
 		std::string wquery;
 		auto table1 = T1::getTableName();
 		auto& map = T1::getMap();
-		
+
 		switch (option) {
 		case 2:
 		{
@@ -333,7 +338,7 @@ namespace CRUD {
 			}
 			Database::logger.Error("Invalid Input");
 			return false;
-			
+
 		}
 		case 3: {
 			wquery = whereHelper(e);
@@ -357,14 +362,14 @@ namespace CRUD {
 		Database db;
 		if (db.selectQueryD(query))
 			Database::logger.Info("Successfully Fetched");
-			return true;
+		return true;
 		return false;
 	}
 
 
 	/***********************************************		update		*************************************************************************************/
 
-	template<typename T1, typename T2=T1>
+	template<typename T1, typename T2 = T1>
 	bool updateHelper(T2& e, std::map<int, getsetmap<T1>> map, std::vector<int>& indices) {
 		for (auto i = 2; i <= T1::getLastKey(); i++) {
 			int input = Utility::takeOption(false, ("Update " + map[i].name), ("Discard " + map[i].name));
@@ -403,7 +408,7 @@ namespace CRUD {
 				Database::logger.Error(invalid);
 				return false;
 			}
-				
+
 		}
 		else {
 			if (Utility::getUserInput(e, T2::getMap()[1])) {
@@ -422,7 +427,7 @@ namespace CRUD {
 					return false;
 				}
 			}
-			else{
+			else {
 				Database::logger.Error(invalid);
 				return false;
 			}
@@ -437,7 +442,7 @@ namespace CRUD {
 				done = true;
 			}
 		}
-	
+
 		std::vector<int> indices2;
 		updateHelper(e, T2::getMap(), indices2);
 		if (indices2.size() != 0) {
@@ -445,14 +450,14 @@ namespace CRUD {
 			if (db.executeQueryD((query2))) {
 				done = true;
 			}
-				
+
 		}
 		if (done) {
 			Database::logger.Info("Successfully Executed Update!");
 			return true;
 		}
 		return false;
-		
+
 	}
 
 	template<typename T1>
@@ -468,7 +473,7 @@ namespace CRUD {
 				Database::logger.Error(valuenotexits);
 				return false;
 			}
-				
+
 		}
 		else {
 			Database::logger.Error(invalid);
@@ -487,18 +492,13 @@ namespace CRUD {
 	}
 
 
-	/**********************************************************************************		 remove		*************************************************************************************/
-
-	template<typename T1>
-	bool removeHelper(T1& e) {
-
-	}
+	/**************************************************************		 remove		*************************************************************************************/
 	
 	template<typename T1>
-	bool remove(T1& e) {
+	bool removeDept(T1& e) {
 		int option = Utility::takeOption(true, "Delete by ID", "Delete by column value");
 		if (option == 0) return true;
-		std::string query{ QueryE::removeQuery(T1::getTableName()) };
+		std::string query= QueryE::removeQuery(e);
 		std::string wquery{};
 		if (option == 1) {
 			if (Utility::getUserInput(e, T1::getMap()[1])) {
@@ -519,51 +519,106 @@ namespace CRUD {
 			wquery = whereHelper(e);
 		}
 		Database db;
-		bool done = false;
-		if (T1::getTableName() == "DEPARTMENT") {
-			Database::logger.Warn("Note that Employees, Engineers, HR, and Managers, belonging to this deparment will also be deleted!");
-			int todlt = Utility::takeOption(false, "Yes, Proceed!", "No, Go back to Previous Menu!");
-			if (todlt == 2) {
-				clear(e);
-				return false;
+		Database::logger.Warn("Note that Employees, Engineers, HR, and Managers, belonging to this deparment will also be deleted!");
+		int todlt = Utility::takeOption(false, "Yes, Proceed!", "No, Go back to Previous Menu!");
+		if (todlt == 2) {
+			clear(e);
+			return false;
+		}
+		else {
+			if (db.turnCascadeOn() && db.executeQueryD((query + wquery))) {
+				Database::logger.Info("Successfully Deleted the requested Department!");
+				db.turnCascadeOff();
+				return true;
 			}
-			else {
-				if (db.turnCascadeOn() && db.executeQueryD((query + wquery))) {
-					db.turnCascadeOff();
-					return true;
+			db.turnCascadeOff();
+			return false;
+
+		}
+	}
+	
+	
+	
+	
+	template<typename T1, typename T2 = T1>
+	bool removeEmplHelper(T2& e, std::vector<std::string> empids) {
+		Database db;
+		for (auto& empid : empids) {
+			if (auto val = db.valueExistsInTable("Department", "DepartmentManager", empid); val > 0) {
+				Database::logger.Warn("Employee is Head of the Department!\n On deleting will also affect Department and its employess.\n Consider updating Department table before preceding!");
+				int option = Utility::takeOption(false, "Yes, Proceed!", "No, Go back to Previous Menu!");
+				if (option == 1) {
+					if (val = db.valueExistsInTable("Employee", "ReportingManager", empid), val > 0) {
+						Database::logger.Warn("Reporting Manager of the Employees will be changed to NULL !\n");
+					}
+					if (db.executeQueryD(QueryE::removeQuery(T2::getTableName(), "EmpId", empid))) {
+						continue;
+					}
+					else {
+						Database::logger.Error(someerror);
+					}
+				}
+			}
+		}
+		return true;
+
+
+	}
+
+	template<typename T1>
+	bool removeEmpl(T1& e) {
+		int option = Utility::takeOption(true, "Delete by ID", "Delete by column value");
+		std::vector<std::string> empids;
+		if (option == 0) return true;
+		if (option == 1) {
+			if (Utility::getUserInput(e, T1::getMap()[1])) {
+				if (Database db; db.valueExistsInTable(T1::getTableName(), T1::getMap()[1].name, (e.*T1::getMap()[1].getter)())) {
+					empids.push_back((e.*T1::getMap()[1].getter)());
+				}
+				else {
+					Database::logger.Error(valuenotexits);
+					return false;
 				}
 			}
 		}
 		else {
-			std::string selectquery = QueryE::viewQuery(e, std::vector{ std::string{T1::getMap()[1].name} });
-			selectquery = selectquery.substr(0, selectquery.length(0 - 1) + wquery;
-			std::vector<std::string> empids;
-			db.getPrimaryKeys(, empids);
-			for (auto& t : empids)
-			{
-
+			std::string wquery = whereHelper(e);
+			if (wquery.length() > 0) {
+				Database db;
+				std::string selectquery = "SELECT EmpId FROM EMPLOYEE" + wquery;
+				if (!db.getPrimaryKeys(selectquery, empids)) {
+					Database::logger.Error(valuenotexits);
+					return false;
+				}
 			}
+			else {
+				Database::logger.Warn(invalid);
+			}
+
 		}
-		
-		if (done) {
-			Database::logger.Info("Successfully Executed Delete");
-			return true;
+		if (empids.size() == 0) {
+			Database::logger.Warn("No Employees Selected!");
+			return false;
 		}
+		if (removeEmplHelper<T1, T1>(e, empids)) {
+			Database::logger.Info("Successfully Deleted the requested Employees!");
+		}
+		Database::logger.Error(invalid);
+		return false;
+
 	}
+
 	template<typename T1, typename T2>
-	bool removeC(T2& e) {
-		//if constexpr ( std::is_same<T2, Manager>::value ||  std::is_same<T2, Engineer>::value ||  std::is_same<T2, HR>::value) {
-		//	/*logger.Warn("On deleting " + T2::getTableName() + " will also cause deletion of Employees, ")*/
-		//}
+	bool removeEmplC(T2& e) {
+		std::vector<std::string> empids;
 		int option = Utility::takeOption(true, "Delete by EmpID", (std::string{ "Delete by " } + T2::getTableName() + " ID"), "Delete by column value");
 		if (option == 0) return true;
-		std::string query;
 		std::string tablename = T2::getTableName();
 		switch (option) {
 		case 1: {
 			if (Utility::getUserInput(e, T2::getMap()[0])) {
 				if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[0].name, (e.*T2::getMap()[0].getter)())) {
-					query = QueryE::whereQuery<T2, T2>(e, T2::getMap()[0]);
+					empids.push_back((e.*T2::getMap()[0].getter)());
 				}
 				else {
 					Database::logger.Error(valuenotexits);
@@ -578,11 +633,20 @@ namespace CRUD {
 
 		}
 		case 2: {
+			std::string wquery;
 			if (Utility::getUserInput(e, T2::getMap()[1])) {
 				if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[1].name, (e.*T2::getMap()[1].getter)())) {
-					query = QueryE::whereQuery(e, T2::getMap()[1]);
-					break;
+					wquery = QueryE::whereQuery(e, T2::getMap()[1]);
+					std::string selectquery = "SELECT EmpId FROM " + T2::getTableName() + " " + wquery;
+					if (!db.getPrimaryKeys(selectquery, empids)) {
+						Database::logger.Error(valuenotexits);
+						return false;
+					}
 				}
+			}
+			else {
+				Database::logger.Error(invalid);
+				return false;
 			}
 			break;
 
@@ -590,20 +654,33 @@ namespace CRUD {
 		case 3: {
 			auto temp = whereHelper(e, T1::getMap(), T2::getMap());
 			tablename = temp.first;
-			query = temp.second;
+			std::string query = temp.second;
 			if (temp.first.size() == 0 || temp.second.size() == 0) {
 				Database::logger.Error(invalid);
 				return false;
 			}
+			else {
+				Database db;
+				query = "SELECT Employee.EmpId from Employee, "+T2::getTableName() + " " + query;
+				if (!db.getPrimaryKeys(query, empids)) {
+					Database::logger.Error(valuenotexits);
+					return false;
+				}
+			}
 
 		}
 		}
-		Database db;
-		if (db.executeQueryD(std::string{ QueryE::removeQuery(tablename) + query })) {
-			Database::logger.Info("Successfully Executed Delete");
-			return true;
+		if (empids.size() == 0) {
+			Database::logger.Warn("No Employees Selected!");
+			return false;
 		}
+		if (removeEmplHelper<T1, T2>(e, empids)) {
+			Database::logger.Info("Successfully Deleted the requested Employees!");
+		}
+		Database::logger.Error(invalid);
+		return false;
 	}
+
 
 }
 

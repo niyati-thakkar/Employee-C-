@@ -36,7 +36,7 @@ namespace Menu {
 				break;
 			}
 			case 4: {
-				CRUD::remove<Employee>(e);
+				CRUD::removeEmpl<Employee>(e);
 				break;
 			}
 			}
@@ -62,7 +62,7 @@ namespace Menu {
 				break;
 			}
 			case 4: {
-				CRUD::remove<Department>(e);
+				CRUD::removeDept<Department>(e);
 				break;
 			}
 			}
@@ -88,7 +88,7 @@ namespace Menu {
 				break;
 			}
 			case 4: {
-				CRUD::removeC<Employee, Engineer>(t);
+				CRUD::removeEmplC<Employee, Engineer>(t);
 				break;
 			}
 			}
@@ -115,7 +115,7 @@ namespace Menu {
 				break;
 			}
 			case 4: {
-				CRUD::removeC<Employee, Manager>(m);
+				CRUD::removeEmplC<Employee, Manager>(m);
 				break;
 			}
 			}
@@ -142,7 +142,7 @@ namespace Menu {
 				break;
 			}
 			case 4: {
-				CRUD::removeC<Employee, HR>(h);
+				CRUD::removeEmplC<Employee, HR>(h);
 				break;
 			}
 			}
