@@ -498,12 +498,16 @@ namespace CRUD {
 	bool removeDept(T1& e) {
 		int option = Utility::takeOption(true, "Delete by ID", "Delete by column value");
 		if (option == 0) return true;
-		std::string query= QueryE::removeQuery(e);
+		std::string query = QueryE::removeQuery(e);
 		std::string wquery{};
 		if (option == 1) {
 			if (Utility::getUserInput(e, T1::getMap()[1])) {
 				if (Database db; db.valueExistsInTable(T1::getTableName(), T1::getMap()[1].name, (e.*T1::getMap()[1].getter)())) {
 					wquery = QueryE::whereQuery<T1, T1>(e, T1::getMap()[1]);
+					if (wquery.length() == 0) {
+						Database::logger.Error(invalid);
+						return false;
+					}
 				}
 				else {
 					Database::logger.Error(valuenotexits);
@@ -517,13 +521,19 @@ namespace CRUD {
 		}
 		else {
 			wquery = whereHelper(e);
+			if(wquery.length() == 0){
+				Database::logger.Error(invalid);
+				return false;
+			}
 		}
 		Database db;
-		Database::logger.Warn("Note that Employees, Engineers, HR, and Managers, belonging to this deparment will also be deleted!");
-		int todlt = Utility::takeOption(false, "Yes, Proceed!", "No, Go back to Previous Menu!");
-		if (todlt == 2) {
-			clear(e);
-			return false;
+		if (auto val = db.valueExistsInTable("Employee", "DeptId", (e.*T1::getMap()[1].getter)()); val > 0) {
+			Database::logger.Warn("Note that Employees, Engineers, HR, and Managers, belonging to this deparment will also be deleted!");
+			int todlt = Utility::takeOption(false, "Yes, Proceed!", "No, Go back to Previous Menu!");
+			if (todlt == 2) {
+				clear(e);
+				return false;
+			}
 		}
 		else {
 			if (db.turnCascadeOn() && db.executeQueryD((query + wquery))) {
@@ -531,6 +541,7 @@ namespace CRUD {
 				db.turnCascadeOff();
 				return true;
 			}
+			Database::logger.Error(invalid);
 			db.turnCascadeOff();
 			return false;
 
@@ -549,7 +560,7 @@ namespace CRUD {
 				int option = Utility::takeOption(false, "Yes, Proceed!", "No, Go back to Previous Menu!");
 				if (option == 1) {
 					if (val = db.valueExistsInTable("Employee", "ReportingManager", empid), val > 0) {
-						Database::logger.Warn("Reporting Manager of the Employees will be changed to NULL !\n");
+						Database::logger.Warn((std::string{ "Reporting Manager of " }, val, " Employees will be changed to NULL !"));
 					}
 					if (db.executeQueryD(QueryE::removeQuery(T2::getTableName(), "EmpId", empid))) {
 						continue;
@@ -602,6 +613,7 @@ namespace CRUD {
 		}
 		if (removeEmplHelper<T1, T1>(e, empids)) {
 			Database::logger.Info("Successfully Deleted the requested Employees!");
+			return true;
 		}
 		Database::logger.Error(invalid);
 		return false;
@@ -661,7 +673,7 @@ namespace CRUD {
 			}
 			else {
 				Database db;
-				query = "SELECT Employee.EmpId from Employee, "+T2::getTableName() + " " + query;
+				query = "SELECT EmpId from "+T2::getTableName() + " " + query;
 				if (!db.getPrimaryKeys(query, empids)) {
 					Database::logger.Error(valuenotexits);
 					return false;

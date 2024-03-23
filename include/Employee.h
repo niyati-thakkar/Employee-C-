@@ -54,7 +54,7 @@ public:
 		return false;
 	}
 	bool setLocation(std::string loc) {
-		if (Validation::validateAddr(loc)) {
+		if (Validation::validateText(loc)) {
 			location = loc;
 			return true;
 		}

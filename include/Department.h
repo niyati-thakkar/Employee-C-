@@ -80,7 +80,7 @@ public:
 	}
 
 	bool setDescription(std::string str) {
-		if (Validation::validateString(str)) {
+		if (Validation::validateText(str)) {
 			description = str;
 			return true;
 		}

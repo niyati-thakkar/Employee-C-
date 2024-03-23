@@ -45,7 +45,7 @@ namespace Validation {
 	bool validateDate(std::string str) {
 		return str.length() > 0 && std::regex_match(str, std::regex(R"((0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[1,2])-(19|20)\d{2})"));
 	}
-	bool validateAddr(std::string str) {
+	bool validateText(std::string str) {
 		return str.length() > 0 && std::regex_match(str, std::regex("^[a-zA-Z0-9 ,.-]*$"));
 	}
 

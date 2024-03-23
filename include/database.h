@@ -2,7 +2,7 @@
 #define _DATABASE_H_
 #include<iostream>
 #include<string>
-#include "LogLibrary/Log.h"
+#include "Log.h"
 #include "../sqlite/sqlite3.h"
 class Database {
 	sqlite3* db;
@@ -82,10 +82,11 @@ public:
 			//std::cout << sqlite3_last_insert_rowid(db) << "\n";
 			if (sqlite3_changes(db) == 0) {
 				logger.Warn("No records Affected!");
+				return false;
 			}
-			return true;
+			
 		}
-		return false;
+		return true;
 	}
 	bool selectQueryD(std::string query) {
 		/* Create SQL statement */
