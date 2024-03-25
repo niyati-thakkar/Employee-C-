@@ -20,9 +20,9 @@ public:
 	std::string getManagerSpecialization() const {
 		return ManagerSpecialization;
 	}
-	std::string getYearsOfExperience() const {
-		if (yearsOfExperience != 0)
-			return std::to_string(yearsOfExperience);
+	std::string getYearsOfManagementExperience() const {
+		if (yearsOfManagementExperience != 0)
+			return std::to_string(yearsOfManagementExperience);
 		return "";
 	}
 	std::string getEmpId() const {
@@ -89,9 +89,9 @@ public:
 		}
 		return false;
 	}
-	bool setYearsOfExperience(std::string str) {
+	bool setYearsOfManagementExperience(std::string str) {
 		try {
-			yearsOfExperience = stoi(str);
+			yearsOfManagementExperience = stoi(str);
 			return true;
 		}
 		catch (...) {
@@ -105,19 +105,30 @@ public:
 	static std::map<int, getsetmap<Manager>>& getMap() {
 		return gettersetter;
 	}
+	double calculateSalary() override {
+		try {
+			double yoe = std::stod(getYearsOfExperience());
+			double basesalary = std::stod(getBaseSalary());
+			return Employee::calculateSalary() + yoe * yoeBonus * basesalary / 100;
+		}
+		catch (...) {
+			return 0;
+		}
 
+	}
 
 private:
 	MID id{};
 	EID empId{};
 	std::string ManagerSpecialization;
-	int yearsOfExperience{};
+	inline static double yoeBonus = 10.0;
+	int yearsOfManagementExperience{};
 	static inline std::string TABLE_NAME = "Manager";
 	inline static std::map<int, getsetmap<Manager>> gettersetter = {
 		{0, getsetmap<Manager>{"EmpId",& setEmpId,& getEmpId, false }},
 		{1, getsetmap<Manager>{"ID",& setid,& getid, false }},
 		{2, getsetmap<Manager>{"ManagementSpecialization",& setManagerSpecialization,& getManagerSpecialization, false}},
-		{3, getsetmap<Manager>{"YearsOfExperience",& setYearsOfExperience,& getYearsOfExperience, true}}
+		{3, getsetmap<Manager>{"YearsOfManagementExperience",& setYearsOfManagementExperience,& getYearsOfManagementExperience, true}}
 	};
 };
 #endif

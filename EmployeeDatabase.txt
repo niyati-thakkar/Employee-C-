@@ -13,7 +13,7 @@ INSERT INTO HR (ID, EmpID, ProficientLanguage, RecruitingExperience) VALUES
 (5000004, 1000004, 'JavaScript', 2),
 (5000005, 1000005, 'SQL', 6);
 
-INSERT INTO ENGINEER (ID, EmpID, TechSpecialization, CurrentProject) VALUES
+INSERT INTO ENGINEER (ID, EmpID, EngineerSpecialization, CurrentProject) VALUES
 (4000001, 1000006, 'Web Development', 'E-commerce website'),
 (4000002, 1000007, 'Data Science', 'Customer segmentation project'),
 (4000003, 1000008, 'Mobile App Development', 'iOS app redesign'),
@@ -58,7 +58,7 @@ INSERT INTO employee (EmpId, FirstName, MiddleName, LastName, Contact, Email, DO
 (1000008, 'Olivia', 'Sophia', 'Taylor', '890-123-4576', 'olivia.taylor@example.com', '1996-12-08', '2021-02-10', 2000002, 1000003),
 (1000009, 'William', 'Alexander', 'Anderson', '901-234-5687', 'william.anderson@example.com', '1989-06-30', '2017-08-20', 2000001, 1000003),
 (1000010, 'Emma', 'Charlotte', 'Martinez', '012-345-6798', 'emma.martinez@example.com', '1997-03-12', '2022-01-05', 2000003, 1000001),
-(1000011, 'James', 'David', 'Hernandez', '123-456-7810', 'james.hernandez@example.com', '1990-05-15', '2020-01-10', 2000001, NULL),
+(1000011, 'James', 'David', 'Hernandez', '123-456-7810', 'james.hernandez@example.com', '1990-05-15', '2020-01-10', 2000003, NULL),
 (1000012, 'Isabella', 'Gabriella', 'Garcia', '234-567-8921', 'isabella.garcia@example.com', '1988-08-20', '2019-12-05', 2000001, 1000011),
 (1000013, 'Alexander', 'Ethan', 'Lopez', '345-678-9032', 'alexander.lopez@example.com', '1995-02-28', '2021-03-22', 2000002, 1000011),
 (1000014, 'Sophia', 'Ava', 'Perez', '456-789-0143', 'sophia.perez@example.com', '1993-07-10', '2020-05-01', 2000003, 1000012),
@@ -79,8 +79,11 @@ CREATE TABLE EMPLOYEE (
     JoiningDate DATE NOT NULL,
     DepartmentID INT NOT NULL,
     ReportingManagerID INT,
+BaseSalary DOUBLE NOT NULL,
+PerformanceRating DOUBLE NOT NULL,
+YearsOfExperience INT NOT NULL,
     FOREIGN KEY (DepartmentID) REFERENCES DEPARTMENT(ID) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (ReportingManagerID) REFERENCES employee(EmpId) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (ReportingManagerID) REFERENCES employee(EmpId) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE TABLE HR (
@@ -102,7 +105,7 @@ CREATE TABLE DEPARTMENT (
 CREATE TABLE ENGINEER (
     ID INTEGER PRIMARY KEY AUTOINCREMENT,
     EmpID INTEGER NOT NULL,
-    TechSpecialization VARCHAR(50) NOT NULL,
+    EngineerSpecialization VARCHAR(50) NOT NULL,
     CurrentProject VARCHAR(50),
     FOREIGN KEY (EmpID) REFERENCES employee(EmpId) ON DELETE CASCADE ON UPDATE CASCADE
 );

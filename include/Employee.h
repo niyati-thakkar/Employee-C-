@@ -5,6 +5,7 @@
 #include<map>
 #include<optional>
 #include "utility.h"
+#include <cmath>
 #include "crud.h"
 
 class Address {
@@ -139,7 +140,21 @@ public:
 			return std::to_string(id);
 		return "";
 	}
-
+	std::string getPerformanceRating() const {
+		if (id != 0)
+			return std::to_string(performanceRating);
+		return "";
+	}
+	std::string getBaseSalary() const {
+		if (id != 0)
+			return std::to_string(baseSalary);
+		return "";
+	}
+	std::string getYearsOfExperience() const {
+		if (id != 0)
+			return std::to_string(yearsOfExperience);
+		return "";
+	}
 	std::string getFname() const {
 		return fname;
 	}
@@ -317,7 +332,48 @@ public:
 		return false;
 	}
 
-	
+	bool setYearsOfExperience(std::string e) {
+		try {
+			yearsOfExperience = stoi(e);
+		}
+		catch (...) {
+			return false;
+		}
+		if (yearsOfExperience < 0 || yearsOfExperience > 100) {
+			yearsOfExperience = 0;
+			return false;
+		}
+		return true;
+	}
+	bool setPerformanceRating(std::string e) {
+		try {
+			performanceRating = round(stod(e) * 100) / 100;
+		}
+		catch (...) {
+			return false;
+		}
+		if (performanceRating < 0 || performanceRating > 10) {
+			performanceRating = 0;
+			return false;
+		}
+		return true;
+	}
+	bool setBaseSalary(std::string e) {
+		try {
+			baseSalary = round(stod(e) * 100) / 100;
+		}
+		catch (...) {
+			return false;
+		}
+		if (baseSalary < 0) {
+			baseSalary = 0;
+			return false;
+		}
+		return true;
+	}
+	virtual double calculateSalary() {
+		return (expenseAllowence + baseSalary + performanceRating * 4 * baseSalary / 100);
+	}
 private:
 	EID id{};
 	std::string fname;
@@ -327,9 +383,13 @@ private:
 	std::string email;
 	std::string DOB;
 	std::string joiningDate;
-	Address empAddr;
 	DID deptId{};
 	EID reportingManagerId{};
+	int yearsOfExperience{};
+	double performanceRating{};
+	double baseSalary{};
+	Address empAddr;
+	inline static double expenseAllowence = 5000;
 	static inline std::string TABLE_NAME = "EMPLOYEE";
 	inline static std::map<int, getsetmap<Employee>> gettersetter = {
 		{1, getsetmap<Employee>{"EmpId",& setid,& getid, false }},
@@ -342,6 +402,9 @@ private:
 		{8, getsetmap<Employee>{"JoiningDate",& setJoiningDate,& getJoiningDate, false}},
 		{9, getsetmap<Employee>{"DepartmentID",& setDeptId,& getDeptId, false}},
 		{10, getsetmap<Employee>{"ReportingManagerID",& setReportingManagerId,& getReportingManagerId, true}},
+		{11, getsetmap<Employee>{"BaseSalary",& setBaseSalary,& getBaseSalary, false}},
+		{12, getsetmap<Employee>{"PerformanceRating",& setPerformanceRating,& getPerformanceRating, false}},
+		{13, getsetmap<Employee>{"YearsOfExperience",& setYearsOfExperience,& getYearsOfExperience, false}},
 	};
 };
 

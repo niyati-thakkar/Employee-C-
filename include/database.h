@@ -2,7 +2,7 @@
 #define _DATABASE_H_
 #include<iostream>
 #include<string>
-#include "Log.h"
+#include "LogLibrary/Log.h"
 #include "../sqlite/sqlite3.h"
 class Database {
 	sqlite3* db;
@@ -12,10 +12,10 @@ class Database {
 public:
 
 	inline static Lognspace::Log logger{ Lognspace::Log::Level::LevelInfo, "EmployeeDatabase.txt" };
-	static int callback(void* count, int argc, char** argv, char** azColName) {
+	static int callbackPrint(void* count, int argc, char** argv, char** azColName) {
 		// Calculate the maximum width of column names and values
-		int* cnt = static_cast<int*>(count);
-		*cnt = *cnt + 1;
+		int* cnt = (static_cast<int*>(count));
+		(*cnt)++;
 		int maxColumnNameWidth = 30;
 		int maxColumnValueWidth = 60;
 		
@@ -57,7 +57,12 @@ public:
 
 		return 0;
 	}
-
+	static int callback(void* count, int argc, char** argv, char** azColName) {
+		int* cnt = (static_cast<int*>(count));
+		(*cnt)++;
+		return 0;
+	}
+	
 	Database() {
 		rc = sqlite3_open("Employee.db", &db);
 		if (rc) {
@@ -66,17 +71,21 @@ public:
 		}
 		else {
 			sqlite3_exec(db, "PRAGMA case_sensitive_like = ON;", callback, 0, &zErrMsg);
+			sqlite3_exec(db, "PRAGMA foreign_keys = ON;", callback, 0, &zErrMsg);
 		}
 	}
 	~Database() {
+		sqlite3_exec(db, "PRAGMA foreign_keys = OFF;", callback, 0, &zErrMsg);
 		sqlite3_close(db);
 	}
 	bool executeQueryD(std::string query) {
+		std::cout << query << "\n";
 		const char* sqlq = query.c_str();
 		rc = sqlite3_exec(db, sqlq, callback, 0, &zErrMsg);
 		if (rc != SQLITE_OK) {
 			fprintf(stderr, "SQL error: %s\n", zErrMsg);
 			sqlite3_free(zErrMsg);
+			return false;
 		}
 		else {
 			//std::cout << sqlite3_last_insert_rowid(db) << "\n";
@@ -94,7 +103,7 @@ public:
 		const char* sql = query.c_str();
 		int count = 0;
 		/* Execute SQL statement */
-		rc = sqlite3_exec(db, sql, callback, &count, &zErrMsg);
+		rc = sqlite3_exec(db, sql, callbackPrint, &count, &zErrMsg);
 
 		if (rc != SQLITE_OK) {
 			fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -112,10 +121,10 @@ public:
 		
 
 	}
+	
 
 	int valueExistsInTable(const std::string& tableName, const std::string& col, const std::string& value) {
 		std::string query = "SELECT * FROM " + tableName + " WHERE " + col + " = '" + value + "'; ";
-
 		const char* sql = query.c_str();
 		int count = 0;
 		/* Execute SQL statement */
@@ -185,14 +194,6 @@ public:
 		sqlite3_close(db);
 
 		return result;
-	}
-	bool turnCascadeOn() {
-		rc = sqlite3_exec(db, "PRAGMA foreign_keys = ON;", callback, 0, &zErrMsg);
-		return rc == SQLITE_OK;
-	}
-	bool turnCascadeOff() {
-		rc = sqlite3_exec(db, "PRAGMA foreign_keys = OFF;", callback, 0, &zErrMsg);
-		return rc == SQLITE_OK;
 	}
 	bool getPrimaryKeys(std::string query, std::vector<std::string>& empids) {
 		rc = sqlite3_exec(db, query.c_str(), [](void* data, int argc, char** argv, char** azColName) -> int {

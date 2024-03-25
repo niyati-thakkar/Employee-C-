@@ -92,11 +92,22 @@ public:
 		  }
 		  return false;
 	  }
-	  
+	  double calculateSalary() override{
+		  try {
+			  double yoe = std::stod(getYearsOfExperience());
+			  double basesalary = std::stod(getBaseSalary());
+			  return Employee::calculateSalary() + yoe * yoeBonus * basesalary / 100;
+		  }
+		  catch (...) {
+			  return 0;
+		  }
+		  
+	  }
 private: TID id{};
 	   EID empId{};
 	   std::string EngineerSpecialization;
 	   std::string currentProject;
+	   inline static double yoeBonus = 9.0;
 	   inline static std::string TABLE_NAME = "Engineer";
 	   inline static std::map < int,
 		   getsetmap < Engineer >> gettersetter = {

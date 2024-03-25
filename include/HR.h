@@ -94,13 +94,24 @@ public:
 		return false;
 
 	}
-	
+	double calculateSalary() override {
+		try {
+			double yoe = std::stod(getYearsOfExperience());
+			double basesalary = std::stod(getBaseSalary());
+			return Employee::calculateSalary() + yoe * yoeBonus * basesalary / 100;
+		}
+		catch (...) {
+			return 0;
+		}
+
+	}
 
 private:
 	HID id{};
 	EID empId{};
 	std::string proficientLangugae;
 	int recruitingExperience{};
+	inline static double yoeBonus = 8.0;
 	inline static std::string TABLE_NAME = "HR";
 	inline static std::map<int, getsetmap<HR>> gettersetter = {
 		{0, getsetmap<HR>{"EmpId",& setEmpId,& getEmpId, false }},

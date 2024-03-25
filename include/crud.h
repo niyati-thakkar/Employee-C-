@@ -158,7 +158,7 @@ namespace CRUD {
 
 	template<typename T1, typename T2 = T1>
 	bool insertHelper(T1& e, std::map<int, getsetmap<T2>>& map) {
-
+		std::cout << T2::getLastKey() << "\n";
 		for (auto i = 2; i <= T2::getLastKey(); i++) {
 			if (!map[i].isOptional) {
 				if (!Utility::getUserInput(e, map[i])) {
@@ -393,7 +393,7 @@ namespace CRUD {
 		if (option == 0) return true;
 		if (option == 1) {
 			if (Utility::getUserInput(e, T2::getMap()[0])) {
-				if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[0].name, (e.*T2::getMap()[0].getter)())) {
+				if (isKeyPresent(T2::getTableName(), T2::getMap()[0].name, (e.*T2::getMap()[0].getter)())) {
 					wherequery2 = QueryE::whereQuery(e, T2::getMap()[0]);
 					(e.*T1::getMap()[1].setter)((e.*T2::getMap()[0].getter)());
 					wherequery1 = QueryE::whereQuery(e, T1::getMap()[1]);
@@ -466,7 +466,7 @@ namespace CRUD {
 		if (option == 0) return true;
 		std::string query;
 		if (Utility::getUserInput(e, e.getMap()[1])) {
-			if (Database db; db.valueExistsInTable(e.getTableName(), e.getMap()[1].name, (e.*e.getMap()[1].getter)())) {
+			if (isKeyPresent(e.getTableName(), e.getMap()[1].name, (e.*e.getMap()[1].getter)())) {
 				query = QueryE::whereQuery(e, e.getMap()[1]);
 			}
 			else {
@@ -502,7 +502,7 @@ namespace CRUD {
 		std::string wquery{};
 		if (option == 1) {
 			if (Utility::getUserInput(e, T1::getMap()[1])) {
-				if (Database db; db.valueExistsInTable(T1::getTableName(), T1::getMap()[1].name, (e.*T1::getMap()[1].getter)())) {
+				if (isKeyPresent(T1::getTableName(), T1::getMap()[1].name, (e.*T1::getMap()[1].getter)())) {
 					wquery = QueryE::whereQuery<T1, T1>(e, T1::getMap()[1]);
 					if (wquery.length() == 0) {
 						Database::logger.Error(invalid);
@@ -536,13 +536,11 @@ namespace CRUD {
 			}
 		}
 		else {
-			if (db.turnCascadeOn() && db.executeQueryD((query + wquery))) {
+			if (db.executeQueryD((query + wquery))) {
 				Database::logger.Info("Successfully Deleted the requested Department!");
-				db.turnCascadeOff();
 				return true;
 			}
 			Database::logger.Error(invalid);
-			db.turnCascadeOff();
 			return false;
 
 		}
@@ -552,23 +550,25 @@ namespace CRUD {
 	
 	
 	template<typename T1, typename T2 = T1>
-	bool removeEmplHelper(T2& e, std::vector<std::string> empids) {
+	bool removeEmplHelper(T2& e, std::vector<std::string>& empids) {
 		Database db;
 		for (auto& empid : empids) {
-			if (auto val = db.valueExistsInTable("Department", "DepartmentManager", empid); val > 0) {
-				Database::logger.Warn("Employee is Head of the Department!\n On deleting will also affect Department and its employess.\n Consider updating Department table before preceding!");
-				int option = Utility::takeOption(false, "Yes, Proceed!", "No, Go back to Previous Menu!");
-				if (option == 1) {
-					if (val = db.valueExistsInTable("Employee", "ReportingManager", empid), val > 0) {
-						Database::logger.Warn((std::string{ "Reporting Manager of " }, val, " Employees will be changed to NULL !"));
-					}
-					if (db.executeQueryD(QueryE::removeQuery(T2::getTableName(), "EmpId", empid))) {
-						continue;
-					}
-					else {
-						Database::logger.Error(someerror);
-					}
+			int option = -1;
+			if (auto val = db.valueExistsInTable("Department", "DeptManager", empid); val > 0) {
+				Database::logger.Warn("Employee is Head of the Department!\nOn deleting will also affect Department and its employess.\nConsider updating Department table before preceding!");
+				option = Utility::takeOption(false, "Yes, Proceed!", "No, Go back to Previous Menu!");
+			}
+			if (option == -1 || option == 1) {
+				if (auto val = db.valueExistsInTable("Employee", "ReportingManagerID", empid); val > 0) {
+					Database::logger.Warn(std::string{ "Reporting Manager of " }, val, " Employees will be changed to NULL !");
 				}
+				if (db.executeQueryD(QueryE::removeQuery(T1::getTableName(), "EmpId", empid))) {
+					
+				}
+
+			}
+			else {
+				continue;
 			}
 		}
 		return true;
@@ -583,7 +583,7 @@ namespace CRUD {
 		if (option == 0) return true;
 		if (option == 1) {
 			if (Utility::getUserInput(e, T1::getMap()[1])) {
-				if (Database db; db.valueExistsInTable(T1::getTableName(), T1::getMap()[1].name, (e.*T1::getMap()[1].getter)())) {
+				if (isKeyPresent(T1::getTableName(), T1::getMap()[1].name, (e.*T1::getMap()[1].getter)())) {
 					empids.push_back((e.*T1::getMap()[1].getter)());
 				}
 				else {
@@ -629,7 +629,7 @@ namespace CRUD {
 		switch (option) {
 		case 1: {
 			if (Utility::getUserInput(e, T2::getMap()[0])) {
-				if (Database db; db.valueExistsInTable(T2::getTableName(), T2::getMap()[0].name, (e.*T2::getMap()[0].getter)())) {
+				if (isKeyPresent(T2::getTableName(), T2::getMap()[0].name, (e.*T2::getMap()[0].getter)())) {
 					empids.push_back((e.*T2::getMap()[0].getter)());
 				}
 				else {
@@ -673,21 +673,22 @@ namespace CRUD {
 			}
 			else {
 				Database db;
-				query = "SELECT EmpId from "+T2::getTableName() + " " + query;
+				query = QueryE::viewQueryC<T1, T2> (e, std::vector< std::string>{ "Employee.EmpId" });
 				if (!db.getPrimaryKeys(query, empids)) {
 					Database::logger.Error(valuenotexits);
 					return false;
 				}
 			}
-
+			break;
 		}
-		}
+		} 
 		if (empids.size() == 0) {
 			Database::logger.Warn("No Employees Selected!");
 			return false;
 		}
 		if (removeEmplHelper<T1, T2>(e, empids)) {
 			Database::logger.Info("Successfully Deleted the requested Employees!");
+			return true;
 		}
 		Database::logger.Error(invalid);
 		return false;
